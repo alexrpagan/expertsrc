@@ -72,40 +72,6 @@ def select_reviewer(domain):
     cursor.execute(cmd, (domain_id, domain_id,))
     return dictfetchall(cursor)[0]
 
-# def get_allocations(question, sample_size=10, min_size=1, max_size=7):
-#     domain_id = question.domain.id
-#     cursor = connection.cursor()
-#     cmd = """ SELECT poisson_binomial_conf(accuracy) confidence_score,
-#                      array_accum(user_id) user_id_set
-#               FROM generate_allocs(%s, %s, %s, %s)
-#               GROUP BY allocation_id ORDER BY confidence_score DESC;"""
-#     cursor.execute(cmd, (domain_id, min_size, max_size, sample_size,))
-#     allocations = list()
-#     for rec in cursor.fetchall():
-#         a = Allocation()
-#         a.confidence = rec[0]
-#         a.members = rec[1]
-#         allocations.append(a)
-#     return allocations
-
-# def update_prices(min_size=1, max_size=11, sample_size=1000):
-#     cursor = connection.cursor()
-#     cmd = "SELECT * FROM get_prices(%s, %s, %s, %s);"
-#     domains = Domain.objects.all()
-#     for domain in domains:
-#         cursor.execute(cmd, (domain.id, min_size, max_size, sample_size,))
-#         rec = cursor.fetchone()
-#         if rec:
-#             prices = rec[0]
-#             for x in range(len(prices)):
-#                 price = prices[x]
-#                 level = Level.objects.get(domain=domain, level_number=x+1)
-#                 level.price = price * 10
-#                 level.save()
-#         else:
-#             return False
-#     return True
-
 def update_prices():
     domains = ui.models.Domain.objects.all()
     results = {}
@@ -120,23 +86,6 @@ def update_prices():
             level.price = price
             level.save()
             return response
-
-# def get_allocations_by_domain(domain_id, sample_size=10, min_size=1, max_size=7, min_confidence=.50, max_price=1000):
-#     cursor = connection.cursor()
-#     cmd = """ SELECT poisson_binomial_conf(l.confidence_upper_bound) confidence_score,
-#                      array_accum(a.user_id) user_id_set, SUM(a.price) price
-#               FROM generate_allocs(%s, %s, %s, %s) as a, ui_level as l
-#               GROUP BY allocation_id 
-#               HAVING sum(a.price) < %s AND poisson_binomial_conf(l.confidence_upper_bound) > %s"""
-#     cursor.execute(cmd, (domain_id, min_size, max_size, sample_size, max_price, min_confidence/100.0))
-#     allocations = list()
-#     for rec in cursor.fetchall():
-#         a = Allocation()
-#         a.confidence = rec[0]
-#         a.members = rec[1]
-#         a.price = rec[2]
-#         allocations.append(a)
-#     return allocations
 
 def get_allocations_by_domain(domain_id, sample_size=10, min_size=1, max_size=7, min_confidence=50, max_price=1000):
     cursor = connection.cursor()
