@@ -1,0 +1,22 @@
+{% for q in questions %}
+<tr>
+  <input type="hidden" name="question_id" value="{{ q.id }}" />
+  <input type="hidden" name="local_field_id" value="{{ q.local_field_id }}" />
+  <input type="hidden" name="domain_id" value="{{ q.domain_id }}" />
+  <td>{{ forloop.counter }}</td>
+  <td>{{ q.local_field_name }}</td>
+  <td>
+    <a class="btn btn-mini" data-toggle="modal" href="#view-{{q.id}}">View</a>
+  </td>
+  <td>
+    <span id="num-workers-{{q.id}}"></span>
+    <input type="hidden" id="alloc-{{q.id}}" name="allocation_selection"/>
+  </td>
+  <td>
+    <span id="confidence-{{q.id}}"></span>
+  </td>
+  <td>
+    <span id="price-{{q.id}}"></span>
+  </td>
+</tr>
+{% endfor %}

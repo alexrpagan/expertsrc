@@ -1,0 +1,43 @@
+{% extends "expertsrc/base.html" %}
+
+{% block title %}Expert worker overview{% endblock title %}
+
+{% block sidebar %}
+{% endblock sidebar %}
+
+{% block content %}
+<div id="domain-overview" class="span8 offset2">
+
+<div>
+  <h1>Expert Worker Overview</h1>
+</div>
+
+<section id="overview">
+  <br/><br/>
+  {% if overview %}
+  <table class="table">
+    <thead>
+      <tr>
+	<th>User</th>
+	<th>Quota (q's/week)</th>
+	<th>Accuracy</th>
+	<th>Level</th>
+	<th># Pending</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in overview %}
+      <tr>
+	<td>{{entry.username}}</td>
+	<td>{{entry.question_quota}}</td>
+	<td>{{entry.accuracy|floatformat:5}}</td>
+	<td>{{entry.user_level}}</td>
+	<td>{{entry.num_pending}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+
+{% endblock content %} 

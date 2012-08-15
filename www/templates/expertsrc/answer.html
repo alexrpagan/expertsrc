@@ -1,0 +1,17 @@
+{% extends "expertsrc/base.html" %}
+
+{% block title %}Answer questions{% endblock title %}
+
+{% block content %}
+<div class="span8 offset2">
+  <h1>Answer questions</h1>
+  <br/>
+  <br/>
+  You have {{ num_questions }} pending question{%if num_questions != 1 %}s{% endif %}.
+  <br/>
+  <br/>
+  {% if num_questions > 0 %}
+  <a href="/answer/next_question" class="btn btn-primary btn-large">Start answering</a>
+  {% endif %}
+</div>
+{% endblock content %} 

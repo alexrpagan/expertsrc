@@ -1,0 +1,17 @@
+{% extends "expertsrc/base.html" %}
+
+{% block title %}Review questions{% endblock title %}
+
+{% block content %}
+<div class="span8 offset2">
+  <h1>Review questions</h1>
+  <br/>
+  <br/>
+  You have {{ num_jobs }} pending review{%if num_jobs != 1 %}s{% endif %}.
+  <br/>
+  <br/>
+  {% if num_jobs > 0 %}
+  <a href="/review/next" class="btn btn-primary btn-large">Start reviewing</a>
+  {% endif %}
+</div>
+{% endblock content %} 

@@ -1,0 +1,40 @@
+{% extends "expertsrc/base.html" %}
+
+{% block title %}Allocate batch{% endblock title %}
+
+{% block sidebar %} {% endblock sidebar %}
+
+{% block content %}
+<div class="span8 offset2">
+  <h1>Generated Allocations for Batch {{batch.id}}</h1>
+  <br/>
+  <p>These allocations of expert workers were generated for you based on your selection criteria.</p>
+  <br/>
+  <table id="choose_alloc" class="table">
+    <thead>
+      <tr>
+	<th>Field Name</th>
+	<th>Allocation Size</th>
+<!--	<th>Allocation Price</th> -->
+	<th>Allocation Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for q in question_display %}
+      <tr>
+	<td>{{q.field_name}}</td>
+	<td>{{q.alloc_size}}</td>
+<!--	<td>{{q.alloc_price}}</td> -->
+	<td>{{q.alloc_conf}}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+      </tr>
+    </tbody>
+  </table>
+  <a href="{{tamer_url}}/tamer/{{tamer_db}}">Back to data tamer</a>
+</div>
+{% endblock content %}
+
+{% block jquery %}
+{% endblock jquery %}

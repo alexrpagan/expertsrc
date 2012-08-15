@@ -1,0 +1,28 @@
+{% extends "expertsrc/base.html" %}
+
+{% block title %}Login{% endblock title %}
+
+{% block content %}
+<div class="span8 offset2">
+  <div class="hero-unit">
+    <h1>Expertsrc</h1>
+    <p>
+      Hierarchical crowd sourcing.
+    </p>
+  </div>
+  <form action="/login/" method="POST" class="well form-inline">
+    {% csrf_token %}
+    {% if next %}
+    <input type="hidden" name="next" value="{{ next }}" />
+    {% endif %}
+    <input class="input-small" type="text" name="username" placeholder="Username"/>
+    <input class="input-small" type="password" name="password"  placeholder="Password"/>
+    <input type="submit" value="Log In" class="btn" />
+  </form>
+  {% if msg %}
+  <div id="msg" class="alert alert-error">
+    {{ msg }}
+  </div>
+  {% endif %}
+</div>
+{% endblock content %} 

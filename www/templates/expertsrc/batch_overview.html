@@ -1,0 +1,43 @@
+{% extends "expertsrc/base.html" %}
+
+{% block title %}Allocate batch{% endblock title %}
+
+{% block sidebar %} {% endblock sidebar %}
+
+{% block content %}
+<div class="span8 offset2">
+  <h1>Question batch overview</h1>
+  <br/>
+  <p>View the progress and expected confidence scores of the allocations generated for your questions.</p>
+  <br/>
+  <table id="choose_alloc" class="table">
+    <thead>
+      <tr>
+	<th>Field Name</th>
+	<th># of Workers</th>
+	<th>Confidence Score</th>
+	<th>Progress</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rec in overview %}
+      <tr>
+	<td>{{rec.local_field_name}}</td>
+	<td>{{rec.number_allocated}}</td>
+	<td>{{rec.confidence|floatformat:5}}</td>
+	<td>
+	  <div class="progress {% if rec.progress == 100 %}progress-success{%else%}progress-info{%endif%}"><div class="bar" style="width: {{ rec.progress }}%"></div>
+	  </div>
+	</td>
+      </tr>
+      {% endfor %}
+      <tr>
+      </tr>
+    </tbody>
+  </table>
+  <a href="{{tamer_url}}/tamer/{{tamer_db}}">Back to data tamer</a>
+</div>
+{% endblock content %}
+
+{% block jquery %}
+{% endblock jquery %}

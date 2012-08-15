@@ -1,0 +1,75 @@
+{% extends "expertsrc/base.html" %}
+
+{% block title %}Ask a question{% endblock title %}
+
+{% block sidebar %} {% endblock sidebar %}
+
+{% block content %}
+<div class="span6 offset2">
+  <h1>Ask a question (pt. 2)</h1>
+  <br/>
+  <p>All questions are <strong>multiple choice</strong> and are used for <strong>entity resolution</strong>. To continue, please enter the Data Tamer <strong>Entity IDs</strong> that you would like to resolve.</p>
+  <br/>
+  <div>
+    Text that will be presented to the user: <br/><br/>
+    <form class="form-inline" method="post" action="/ask/{{ question.id }}/store_entity_ids/">
+      {% csrf_token %}
+      <div>
+	{{ form.entityid_errors }}
+	Is <input class="input-small" id="id_entityid" type="text" name="entityid" maxlength="32" placeholder="EntityID"/> the same as any of the following:
+	<br/>
+	<br/>
+	<div>
+	  <ul id="entity_list">
+	    <li id="choice1" class="choice"><input class="input-small" id="choice1" type="text" name="entityid1" maxlength="32" placeholder="EntityID"/></li>
+	  </ul>
+	</div>
+	<div class="btn-toolbar">
+	  <div class="btn-group">
+	    <button type="button" class="btn" id="add_choice_input">Add a choice</button>
+	    <button type="button" class="btn" id="rem_choice_input">Remove a choice</button>
+	  </div>
+	  <div class="btn-group">
+	    <button type="submit" class="btn btn-primary">Next >></button>
+	  </div>
+	</div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock content %} 
+
+{% block jquery %}
+<script type="text/javascript">
+  $(document).ready(function(){
+  $('#add_choice_input').click(function() {
+  var choice_count = $('#entity_list li').length;
+  var new_count = choice_count + 1;
+  $('#entity_list').append(
+  $('<li>').attr(
+    {id: 'choice' + new_count,
+     class: 'choice'
+    }
+  ).append(
+  $('<input>').attr(
+    { class: 'input-small',
+      id: 'choice_input' + new_count,
+      type: 'text',
+      name: 'entityid' + new_count,
+      maxlength: '32',
+      placeholder: 'EntityID'
+    }
+  )));
+  });
+
+  $('#rem_choice_input').click(function(){
+  var choice_count = $('#entity_list li').length;
+  if(choice_count == 1){
+    return;
+  }
+  $('#entity_list li').remove('#choice'+choice_count);
+  });
+  });
+</script>
+{% endblock jquery %}

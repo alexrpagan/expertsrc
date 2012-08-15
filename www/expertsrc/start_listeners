@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [[ -f .listener_pids ]]; then
+    echo pid file already exists.
+    exit 0;
+fi
+
+echo Firing up queue watchers...
+python manage.py watch_queues &
+echo $! > .listener_pids

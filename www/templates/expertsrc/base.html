@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}Expert Sourcing{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="/static/css/bootstrap.css" rel="stylesheet"/>
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    {% block styles %}
+    {% endblock styles %}
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Expertsrc</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li><a href="/user">User HQ</a></li>
+	      <li><a href="/batches">Question Batches</a></li>
+              <li><a href="/answer">Answer</a></li>
+	      <li><a href="/review">Review</a></li>
+	      <li><a href="/user/overview">User Overview</a></li>
+            </ul>
+	    <ul class="nav pull-right">
+	      {% if user.username %}
+	      <li><a href="/user/">{{ user.username }}</a></li>
+	      <li><a href="/logout">Logout</a></li>
+	      {% else %}
+	      <li><a href="/login">Login</a></li>
+	      {% endif %}
+	    </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div id="sidebar" class="span2">
+	{% block sidebar %}{% endblock sidebar %}
+      </div>
+      {% block content %}{% endblock content %}
+    </div>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    {% block jquery %}{% endblock jquery %}
+  </body>
+</html>
