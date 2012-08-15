@@ -1,0 +1,68 @@
+TODO:
+
+Github?
+
+Implement Mitch's confidence score with the following assumptions:
+
+-- Priors of the answers are equal
+
+-- Limit to top-k results
+
+-- Provide option to "show more" if result is not shown on page
+
+
+Fix up the user interface
+
+-- Add admin UI for:
+
+---- Computing prices
+
+---- Materializing allocations
+
+-- Add contextual information
+
+-- Make styles more consistent
+
+-- Add confidence slider
+
+-- Add "reason" field
+
+-- Simplify the batch-allocation interface
+
+-- Add some directions and mouseovers to make sure that everything is clear to the user
+
+-- Add response form for scientists to get feedback on UI
+
+
+Novartis misc
+
+-- Figure out the domain
+
+-- Figure out questions (e.g. select sources)
+
+Novartis hardware
+
+-- Get server access
+
+-- Do production release
+
+-- Test!!!
+
+
+Weekend:
+
+Refactor static pricing
+
+-- Restrict to one pass over the data 
+   (this is a specific instance of the parallelized version)
+
+Concurrent implementation of static pricing
+
+-- Partition allocation table into k subsections
+
+-- Create a thread for each subsections
+
+-- Merge results into one hash
+
+-- Calculate results in one thread
+
