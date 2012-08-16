@@ -23,6 +23,7 @@ CREATE TYPE gen_domain_allocs_return_type AS (
        user_level integer
 );
 
+
 CREATE OR REPLACE FUNCTION gen_domain_allocs(domain_id integer, min_size integer, max_size integer)
 RETURNS SETOF gen_domain_allocs_return_type AS
 $$
@@ -67,5 +68,3 @@ cmd = """INSERT INTO alloc_conf_scores
 plpy.execute(cmd)
 
 $$ language plpythonu;
-
-
