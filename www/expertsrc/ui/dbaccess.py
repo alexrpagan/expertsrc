@@ -11,6 +11,7 @@ from ui.models import *
 
 import ui
 
+@transaction.commit_on_success
 def get_answerer_domain_overview(user):
     cursor = connection.cursor()
     cmd = """SELECT * FROM answerer_overview
@@ -18,6 +19,7 @@ def get_answerer_domain_overview(user):
     cursor.execute(cmd, [user.id])
     return dictfetchall(cursor)
 
+@transaction.commit_on_success
 def get_overview_record(user, domain):
     cursor = connection.cursor()
     cmd = """SELECT user_level, price FROM answerer_overview
@@ -26,6 +28,7 @@ def get_overview_record(user, domain):
     res = dictfetchall(cursor)
     return res[0]
 
+@transaction.commit_on_success
 def get_global_user_overview():
     cursor = connection.cursor()
     cmd = """ SELECT o.username, o.short_name, o.question_quota, o.accuracy, o.user_level, p.num_pending
@@ -41,6 +44,7 @@ def get_global_user_overview():
     res = dictfetchall(cursor)
     return res
 
+@transaction.commit_on_success
 def get_batch_overview(batch_id):
     cursor = connection.cursor()
     cmd = """ SELECT local_field_name, number_allocated, number_completed, poisson_binomial_conf as conf
@@ -59,6 +63,7 @@ def get_level_dist(question, members):
 
 #TODO: change this so that a reviewer is only assigned to questions if 
 # he or she has not exceeded the weekly question quota
+@transaction.commit_on_success
 def select_reviewer(domain):
     cursor = connection.cursor()
     domain_id = domain.id
@@ -72,6 +77,7 @@ def select_reviewer(domain):
     cursor.execute(cmd, (domain_id, domain_id,))
     return dictfetchall(cursor)[0]
 
+@transaction.commit_on_success
 def update_prices():
     domains = ui.models.Domain.objects.all()
     results = {}
@@ -87,6 +93,7 @@ def update_prices():
             level.save()
             return response
 
+@transaction.commit_on_success
 def get_allocations_by_domain(domain_id, sample_size=10, min_size=1, max_size=7, min_confidence=50, max_price=1000):
     cursor = connection.cursor()
 
