@@ -67,7 +67,7 @@ def get_response_posterior(qdata, corr=None):
     for idx in xrange(len(response)):
         answerer_conf = alloc[idx]
         if response[idx] != correct_answer:
-            answerer_conf = 1.0 - answerer_conf
+            answerer_conf = (1.0 - answerer_conf) / (len(qdata['choices']) - 1)
         prob = prob * answerer_conf
     return prob
 
@@ -100,7 +100,8 @@ new_str_probs = str_probs[1:-1]
 # parse array into list of floats
 probs = [float(x) for x in new_str_probs.split(',')]
 
-return get_confidence_score(probs, 2)
+# only evaluate 5 choices for now.
+return get_confidence_score(probs, 5)
 
 $$ LANGUAGE plpythonu;
 
