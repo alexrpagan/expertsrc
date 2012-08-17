@@ -8,7 +8,7 @@ import multiprocessing
 
 # settings for the input table
 CONF_FUNCTIONS = ['ecc', 'poisson_binomial_conf']
-FUNC_NO = 0 
+FUNC_NO = 1
 DOMAIN_ID = 25
 TOTAL_NUMBER = 27894
 
@@ -153,8 +153,8 @@ def main():
         thread.join()
     
     merge_data_tables(conn_pool)
-
     clean_up_db(conn_pool)
+    conn_pool.closeall()
 
 if __name__ == "__main__":
     main()
