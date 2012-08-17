@@ -66,11 +66,4 @@ for x in range(len(rv)):
 
 plpy.execute('TRUNCATE alloc_conf_scores')
 
-cmd = """INSERT INTO alloc_conf_scores
-	 SELECT domain_id, allocation_id, poisson_binomial_conf(accuracy) conf 
-	 FROM allocations 
-	 GROUP BY domain_id, allocation_id"""
-
-plpy.execute(cmd)
-
 $$ language plpythonu;
