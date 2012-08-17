@@ -1,66 +1,106 @@
 create or replace function exhaustive_bayes(str_probs float[]) RETURNS float AS
 $$
-import itertools
+"""
+This is only intended to be used with schemamapping multiple choice questions.
+
+TODO: create good abstractions to that this can be extended to other sorts of
+      multiple choice questions
+"""
 
 def get_choices():
     """ 
     Retrieves a list of all multiple choice options.
     """
-    pass
+    cmd = """ SELECT c.global_attribute_id as id,
+                 c.global_attribute_name as att_name, 
+                 SUM(CASE WHEN a.is_match and ba.question_id = bc.question_id 
+                          THEN 1 ELSE 0 END) frequency
+          FROM ui_schemamapchoice c 
+               LEFT JOIN ( 
+                  ui_schemamapanswer a
+                  JOIN ui_baseanswer ba ON a.baseanswer_ptr_id = ba.id  
+               ) ON c.global_attribute_id = a.global_attribute_id
+               JOIN ui_basechoice bc ON c.basechoice_ptr_id = bc.id
+          GROUP BY c.global_attribute_name, c.global_attribute_id;"""
 
-def get_priors():
-    """ 
-    The prior probabilities of each of the multiple choice options.
-    """
-    pass
+    rv = plpy.execute(cmd)
+    return [rv[i]['id'] for i in xrange(len(rv))]
 
+def seq_generator(alphabet, length):
+    import itertools
+    return itertools.product(alphabet, repeat=length)
 
-#TODO use itertools product instead...
-
-def generate_sequences(alphabet, length):
-    seqs = []
-    if length == 1:
-        for char in alphabet:
-            seqs.append([char])
-    elif length > 1:
-        for char in alphabet:
-            for seq in generate_sequences(alphabet, length - 1):
-                seqs.append([char] + seq)
-    return seqs
-
-def get_response_confidence():
+def get_response_confidence(qdata):
     """
     P ( A | R ) * P ( R | A ) * P ( A ) 
     """
-    return get_choice_posterior() * get_response_posterior() * get_choice_prior()
+    return get_choice_posterior(qdata) * get_response_posterior(qdata) * qdata['choice_prior']
 
-def get_choice_posterior(response, allocation, choices):
+def get_response_prior(qdata):
+    """
+    P ( R )
+    """
+    prob = 0.0
+    for choice in qdata['choices']:
+        prob += get_response_posterior(qdata, choice) * qdata['choice_prior']
+    return prob
+
+def get_choice_posterior(qdata):
     """
     P ( A | R )
     """
-    pass
+    return get_response_posterior(qdata) * qdata['choice_prior'] / get_response_prior(qdata)
 
-def get_response_posterior():
+def get_response_posterior(qdata, corr=None):
     """
     P ( R | A )
     """
-    pass
+    response = qdata['response']
+    alloc = qdata['allocation']
 
-def get_choice_prior():
+    if corr is not None:
+        correct_answer = corr
+    else:
+        correct_answer = qdata['correct_answer']
+
+    prob = 1.0
+    for idx in xrange(len(response)):
+        answerer_conf = alloc[idx]
+        if response[idx] != correct_answer:
+            answerer_conf = 1.0 - answerer_conf
+        prob = prob * answerer_conf
+    return prob
+
+def get_choice_prior(choices):
     """
     P ( A )
     """
-    pass
+    num_choices = len(choices)
+    if len > 0:
+        return 1.0 / num_choices
+    else:
+        return 0
 
-def get_confidence_score(allocation, db_data):
-    choices = range(10)
-    cum_conf = 0
-    for answer in generate_sequences(choices, len(allocation)):
-        cum_conf += get_reponse_confidence()
-    return cum_conf
+def get_confidence_score(allocation, choice_limit):
+    qdata = dict()
+    qdata['allocation'] = allocation
+    qdata['choice_prior'] = 1.0 / choice_limit
+    qdata['choices'] = range(choice_limit)
+    conf = 0.0
+    for correct in qdata['choices']:
+        qdata['correct_answer'] = correct
+        for response in seq_generator(qdata['choices'], len(allocation)):
+            qdata['response'] = response
+            conf += get_response_confidence(qdata)
+    return conf
 
-# get question type model, then call type.get_confidence_score to execute
-# the appropriate implementation of the confidence algorithm
+# strip brackets from psql array notation
+new_str_probs = str_probs[1:-1]
+
+# parse array into list of floats
+probs = [float(x) for x in new_str_probs.split(',')]
+
+return get_confidence_score(probs, 2)
 
 $$ LANGUAGE plpythonu;
 
@@ -108,6 +148,15 @@ CREATE AGGREGATE poisson_binomial_conf (
        stype = float[],
        finalfunc = poisson_binomial,
        initcond = '{}'
+);
+
+DROP AGGREGATE IF EXISTS ecc(float) CASCADE;
+CREATE AGGREGATE ecc (
+    sfunc = array_append,
+    basetype = float,
+    stype = float[],
+    finalfunc = exhaustive_bayes,
+    initcond = '{}'
 );
 
 DROP AGGREGATE IF EXISTS array_accum(integer) CASCADE;
