@@ -287,7 +287,7 @@ def commit_allocations(request):
 
             batch = Batch.objects.get(pk=int(batch_id))
 
-            
+            try:
                 user.pay_out(batch, float(price))
             except InsufficientFundsException as e:
                 response['status'] = 'failure'
