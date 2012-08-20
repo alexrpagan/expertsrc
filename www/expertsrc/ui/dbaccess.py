@@ -91,7 +91,8 @@ def update_prices():
             level = ui.models.Level.objects.get(domain=domain, level_number=level_number)
             level.price = price
             level.save()
-            return response
+        results[domain.id] = response
+    return results
 
 @transaction.commit_on_success
 def get_allocations_by_domain(domain_id, sample_size=10, min_size=1, max_size=7, min_confidence=50, max_price=1000):
