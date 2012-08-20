@@ -180,8 +180,6 @@ def user_batches(request):
         most_recent = batches[0]
     else:
         messages.error(request, 'You have not imported any batches from Data Tamer.')
-    tamer_url = settings.TAMER_URL
-    tamer_db = settings.TAMER_DB
     c=locals()
     return render_to_response('expertsrc/user_batches.html', c, 
                               context_instance=RequestContext(request))
@@ -289,7 +287,7 @@ def commit_allocations(request):
 
             batch = Batch.objects.get(pk=int(batch_id))
 
-            try:
+            
                 user.pay_out(batch, float(price))
             except InsufficientFundsException as e:
                 response['status'] = 'failure'
@@ -324,6 +322,9 @@ def import_schema_map_answers(request):
     return HttpResponseRedirect('/answer/')
 ###
 
+def redirect_to_tamer(request):
+    return HttpResponseRedirect("%s/tamer/%s" % (settings.TAMER_URL, settings.TAMER_DB,))
+
 def global_user_overview(request):
     overview = get_global_user_overview()
     c = locals()
@@ -339,8 +340,6 @@ def batch_overview(request, batch_id):
         new_rec['progress'] = float(record['number_completed']) / record['number_allocated'] * 100
         new_rec['confidence'] = record['conf']
         overview.append(new_rec)
-    tamer_url = settings.TAMER_URL
-    tamer_db = settings.TAMER_DB
     c = locals()
     return render_to_response('expertsrc/batch_overview.html', c)
 
