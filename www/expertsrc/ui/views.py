@@ -316,7 +316,7 @@ def update_prices(request):
 # TODO:
 # deep-six import_schema_map_questions and import_schema_map_answers
 def import_schema_map_questions(request):
-    return HttpResponseRedirect('/batches/')
+    return HttpResponseRedirect('/batches/?check')
 
 def import_schema_map_answers(request):
     return HttpResponseRedirect('/answer/')
