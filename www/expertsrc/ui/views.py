@@ -322,15 +322,22 @@ def import_schema_map_answers(request):
     return HttpResponseRedirect('/answer/')
 ###
 
+def about(request):
+    user = request.user
+    c = locals()
+    return render_to_response('expertsrc/about.html', c)
+
 def redirect_to_tamer(request):
     return HttpResponseRedirect("%s/tamer/%s" % (settings.TAMER_URL, settings.TAMER_DB,))
 
 def global_user_overview(request):
+    user = request.user
     overview = get_global_user_overview()
     c = locals()
     return render_to_response('expertsrc/user_overview.html' , c)
 
 def batch_overview(request, batch_id):
+    user = request.user
     batch = get_object_or_404(Batch, pk=batch_id)
     overview = list()
     for record in get_batch_overview(batch.id):
