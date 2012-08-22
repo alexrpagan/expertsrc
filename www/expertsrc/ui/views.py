@@ -130,14 +130,17 @@ def overview(request, username):
     expertise_form.fields["domain"].queryset = \
         Domain.objects.exclude(expertise__user__id__exact=user.get_profile().id)
     full_up = expertise_form.fields["domain"].queryset.count() == 0
+
     c = {
         'user':user,
         'profile':user.get_profile(),
+        'is_answerer': is_answerer,
         'allow_add_domain': is_answerer and not full_up,
         'profile_form':profile_form,
         'expertise_form':expertise_form,
         'overview':overview,
     }
+
     return render_to_response('expertsrc/userhq.html', c,
                               context_instance=RequestContext(request))
 
@@ -193,9 +196,11 @@ def batch_panel(request, batch_id):
     QuestionModel = batch.question_type.question_class.model_class()
     questions = QuestionModel.objects.filter(batch=batch)
 
+    profile = user.get_profile()
+
     c = locals()
 
-    return render_to_response('expertsrc/batch_panel.html', c)
+    return render_to_response('expertsrc/batch_panel.html', c, context_instance=RequestContext(request))
 
 @login_required
 def check_for_new_batches(request):

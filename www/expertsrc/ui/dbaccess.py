@@ -14,8 +14,18 @@ import ui
 @transaction.commit_on_success
 def get_answerer_domain_overview(user):
     cursor = connection.cursor()
-    cmd = """SELECT * FROM answerer_overview
-             WHERE user_id = %s"""
+    # cmd = """SELECT * FROM answerer_overview
+    #          WHERE user_id = %s"""
+    cmd = """ SELECT o.*, p.num_pending, o.num_answered + p.num_pending as num_assigned
+              FROM answerer_overview as o
+              LEFT JOIN
+                 (SELECT a.answerer_id, q.domain_id, COUNT(a.question_id) AS num_pending
+                  FROM ui_assignment AS a JOIN ui_basequestion AS q ON a.question_id = q.id
+                  WHERE completed = 'f'
+                  GROUP BY a.answerer_id, q.domain_id) AS p
+              ON p.answerer_id = o.user_id AND p.domain_id = o.domain_id
+              WHERE o.user_id = %s
+              ORDER BY o.accuracy DESC, o.short_name"""
     cursor.execute(cmd, [user.id])
     return dictfetchall(cursor)
 

@@ -5,9 +5,9 @@
 {% block content %} 
 <div class="span8 offset2">
   <h1>About Expertsrc</h1>
-
+  <br />
+  <p class="lead">What, Why, How</p>
   <hr />
-
   <div>
     Some cool stuff here explaining:
     <ul>
@@ -19,3 +19,9 @@
 </div>
 
 {% endblock content %}
+
+{% block jquery %}
+<script type="text/javascript">
+  $("#nav-about").addClass("active");
+</script>
+{% endblock jquery %}

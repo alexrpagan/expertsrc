@@ -1,13 +1,5 @@
 {% extends "expertsrc/base.html" %}
 
-{% block styles %}
-<style type="text/css" media="screen">
-  .info {
-     margin:20px;
-  }
-</style>
-{% endblock styles %}
-
 {% block title %}User Information for {{ user.username }} {% endblock title %}
 
 {% block sidebar %}
@@ -15,50 +7,107 @@
 
 {% block content %}
 <div id="domain-overview" class="span8 offset2">
-
+<h1>User Overview</h1>
+<br />
 <div class="row">
-  <h1>User Overview</h1>
+  <div class="span8">
+    <p class="lead">
+      Summary of your Expertsrc profile.
+    </p>
+  </div>
 </div>
-
-<div class="row info">
-  <p>Hello, {{ user.username }}. Use this panel to manage your user profile.</p>
-</div>
-
+<br />
+<!--
+<section id="overview">
+  {% if overview %}
+  <div class="row">
+    <table class="table">
+      <thead>
+	<tr>
+	  <th>Domain</th>
+	  <th>Quota (q's/week)</th>
+	  <th>Number answered</th>
+	  <th>Accuracy</th>
+	  <th>Level</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for entry in overview %}
+	<tr>
+	  <td>{{ entry.short_name }}</td>
+	  <td>{{ entry.question_quota }}</td>
+	  <td>{{ entry.num_answered }}</td>
+	  <td>{{ entry.accuracy }}</td>
+	  <td>{{ entry.user_level }}</td>
+	</tr>
+	{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</section>
+-->
 
 <section id="overview">
   {% if overview %}
-  <table class="table">
-    <thead>
-      <tr>
-	<th>Domain</th>
-	<th>Quota (q's/week)</th>
-	<th>Number answered</th>
-	<th>Accuracy</th>
-	<th>Level</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for entry in overview %}
-      <tr>
-	<td>{{ entry.short_name }}</td>
-	<td>{{ entry.question_quota }}</td>
-	<td>{{ entry.num_answered }}</td>
-	<td>{{ entry.accuracy }}</td>
-	<td>{{ entry.user_level }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="row">
+    <div class="span8">
+      <table class="table" id="domain-overview">
+	<thead>
+	  <tr>
+	    <th>Question Domain</th>
+	    <th>Total # assigned</th>
+	    <th>Total # answered</th>
+	    <th>Total # pending</th>
+	  </tr>
+	</thead>
+	<tbody>
+	  {% for entry in overview %}
+	  <tr>
+	    <td>{{ entry.short_name }}</td>
+	    <td>
+	      <span class="badge badge-info">
+		{{ entry.num_assigned}}
+	      </span>
+	    </td>
+	    <td>
+	      <span class="badge badge-success">
+		{% if entry.num_answered == 0 %}
+		None
+		{% else %}
+		{{ entry.num_answered }}
+		{% endif %}
+	      </span>
+	    </td>
+	    <td>
+	      <span class="badge badge-important">
+		{{ entry.num_pending}}
+	      </span>
+	    </td>
+	  </tr>
+	  {% endfor %}
+	</tbody>
+      </table>
+      <hr />
+      <a href="#" class="btn btn-mini" rel="popover" data-content="Questions are sorted into <b>domains</b> based on the types of expertise needed to answer them. This is a breakdown of the domains and questions that you've been assigned." data-original-title="Domain Table">More info</a>
+      <a href="/answer" class="btn btn-mini btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i> </a>
+    </div>
+  </div>
+  <br />
+  <br />
   {% endif %}
 </section>
-
+<hr />
 <section id="user-profile-info">
-  <div class="row-fluid">
-    <div class="span6">
+  <div class="row">
+    <div class="span4">
       <div>
-	<h3>Bank Info:</h3>
-	<strong>Balance:</strong> {{ profile.bank_balance }} 
+	<b>Bank Balance:</b>
+	<h2>{{ profile.bank_balance }} points</h2> 
+	<br />
+	<a href="#" rel="popover" data-content="Users with question-asking privileges can hire other users in the crowd market with an internal currency. Payments are rendered to answerers in that currency. This is your current balance of crowd-market currency." data-original-title="Bank Balance" class="btn btn-mini">More info</a>
       </div>
+      <!--
       <br/>
       <h3>User Profile Info:</h3>
       <form method="post" action="/user/{{ user.username }}/update_profile/">
@@ -71,8 +120,10 @@
 	</div>
 	<input type="submit" value="Save User Info" />
       </form>
+      -->
     </div>
 
+    <!--
     {% if allow_add_domain %}
     <div class="span6">
       <h3>Add an area of expertise:</h3>
@@ -83,7 +134,29 @@
       </form>
     </div>
     {% endif %}
+    -->
+    <div class="span4">
+      <b>User Class:</b>
+      <h2> {% if is_answerer %} Answerer {% else %} Asker {% endif %} </h2>
+	<br />
+	<a href="#" rel="popover" data-content="Users that can ask questions of the crowd are <b>Askers</b>. Users that can answer questions are <b>Answerers</b>." data-original-title="User Class" class="btn btn-mini">More info</a>
+    </div>
+    
   </div>
 </section>
-
+<hr/>
 {% endblock content %} 
+
+{% block jquery %}
+
+<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  $("#nav-user").addClass("active");
+  $("a[rel=popover]")
+  .popover({placement:'bottom'})
+  .click(function(e) {
+  e.preventDefault()
+  })
+</script>
+
+{% endblock jquery %}
