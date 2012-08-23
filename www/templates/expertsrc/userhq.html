@@ -67,7 +67,7 @@
 	    <td>{{ entry.short_name }}</td>
 	    <td>
 	      <span class="badge badge-info">
-		{{ entry.num_assigned}}
+		{{ entry.num_assigned }}
 	      </span>
 	    </td>
 	    <td>
@@ -81,7 +81,7 @@
 	    </td>
 	    <td>
 	      <span class="badge badge-important">
-		{{ entry.num_pending}}
+		{{ entry.num_pending }}
 	      </span>
 	    </td>
 	  </tr>
@@ -100,6 +100,7 @@
 <hr />
 <section id="user-profile-info">
   <div class="row">
+    {% if not is_answerer %}
     <div class="span4">
       <div>
 	<b>Bank Balance:</b>
@@ -122,6 +123,7 @@
       </form>
       -->
     </div>
+    {% endif %}
 
     <!--
     {% if allow_add_domain %}
