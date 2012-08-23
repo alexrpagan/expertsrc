@@ -7,8 +7,14 @@
 {% block content %}
 <div class="span8 offset2">
   <h1>Question batch overview</h1>
-  <br/>
-  <p>View the progress and expected confidence scores of the allocations generated for your questions.</p>
+  <br />
+  <div class="row info">
+    <div class="span8">
+      <p class="lead">
+	View the progress of the questions you've sent to crowd workers.
+      </p>
+    </div> 
+  </div>
   <br/>
   <table id="choose_alloc" class="table">
     <thead>
@@ -35,9 +41,12 @@
       </tr>
     </tbody>
   </table>
-  <a href="{{tamer_url}}/tamer/{{tamer_db}}">Back to data tamer</a>
+  <a class="btn btn-primary pull-right" href="/tamer/">Data tamer</a>
 </div>
 {% endblock content %}
 
 {% block jquery %}
+<script type="text/javascript">
+  $("#nav-batches").addClass("active");
+</script>
 {% endblock jquery %}

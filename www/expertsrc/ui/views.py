@@ -130,14 +130,17 @@ def overview(request, username):
     expertise_form.fields["domain"].queryset = \
         Domain.objects.exclude(expertise__user__id__exact=user.get_profile().id)
     full_up = expertise_form.fields["domain"].queryset.count() == 0
+
     c = {
         'user':user,
         'profile':user.get_profile(),
+        'is_answerer': is_answerer,
         'allow_add_domain': is_answerer and not full_up,
         'profile_form':profile_form,
         'expertise_form':expertise_form,
         'overview':overview,
     }
+
     return render_to_response('expertsrc/userhq.html', c,
                               context_instance=RequestContext(request))
 
@@ -180,8 +183,6 @@ def user_batches(request):
         most_recent = batches[0]
     else:
         messages.error(request, 'You have not imported any batches from Data Tamer.')
-    tamer_url = settings.TAMER_URL
-    tamer_db = settings.TAMER_DB
     c=locals()
     return render_to_response('expertsrc/user_batches.html', c, 
                               context_instance=RequestContext(request))
@@ -195,9 +196,11 @@ def batch_panel(request, batch_id):
     QuestionModel = batch.question_type.question_class.model_class()
     questions = QuestionModel.objects.filter(batch=batch)
 
+    profile = user.get_profile()
+
     c = locals()
 
-    return render_to_response('expertsrc/batch_panel.html', c)
+    return render_to_response('expertsrc/batch_panel.html', c, context_instance=RequestContext(request))
 
 @login_required
 def check_for_new_batches(request):
@@ -318,18 +321,28 @@ def update_prices(request):
 # TODO:
 # deep-six import_schema_map_questions and import_schema_map_answers
 def import_schema_map_questions(request):
-    return HttpResponseRedirect('/batches/')
+    return HttpResponseRedirect('/batches/?check')
 
 def import_schema_map_answers(request):
     return HttpResponseRedirect('/answer/')
 ###
 
+def about(request):
+    user = request.user
+    c = locals()
+    return render_to_response('expertsrc/about.html', c)
+
+def redirect_to_tamer(request):
+    return HttpResponseRedirect("%s/tamer/%s" % (settings.TAMER_URL, settings.TAMER_DB,))
+
 def global_user_overview(request):
+    user = request.user
     overview = get_global_user_overview()
     c = locals()
     return render_to_response('expertsrc/user_overview.html' , c)
 
 def batch_overview(request, batch_id):
+    user = request.user
     batch = get_object_or_404(Batch, pk=batch_id)
     overview = list()
     for record in get_batch_overview(batch.id):
@@ -339,8 +352,6 @@ def batch_overview(request, batch_id):
         new_rec['progress'] = float(record['number_completed']) / record['number_allocated'] * 100
         new_rec['confidence'] = record['conf']
         overview.append(new_rec)
-    tamer_url = settings.TAMER_URL
-    tamer_db = settings.TAMER_DB
     c = locals()
     return render_to_response('expertsrc/batch_overview.html', c)
 

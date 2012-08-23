@@ -92,7 +92,7 @@ $(function() {
 	var min_size = $('#amount-min').val();
 	var max_size = $('#amount-max').val();
 	var spinner = new Spinner(opts).spin();
-	$("#get-allocs").text("Loading suggestions...");
+	$("#get-allocs").text("Loading...");
 	$('#spinner').html(spinner.el);
 	$.post(
 	    '/batch/get_allocation_suggestions/',
@@ -100,8 +100,8 @@ $(function() {
 		batch_id : batch_id,
 		question_ids : question_ids,
 		domain_id : domain_id,
-		min_size : min_size,
-		max_size : max_size,
+		min_size : 1,
+		max_size : 9,
 		price : price,
 		confidence : confidence
 	    },
@@ -173,6 +173,7 @@ $(function() {
 		$('#alloc-stats').hide();
 		$('#questions').hide();
 		if (data.status == 'success'){
+		    $('#constraint-panel').hide();
 		    $('#status').attr('class', 'alert alert-success');
 		    $('#commit-allocs').attr('disabled', 'disabled');
 		    setTimeout(function() {
@@ -192,3 +193,39 @@ $(function() {
     });
 });
 
+select_minprice = function() {
+    $('#constraint').html("confidence");
+    $('#minprice-sel').attr('checked', 'checked');
+    $("#conf-slider-row").show();
+    $("#price-slider-row").hide();
+};
+
+select_maxconf = function() {
+    $("#constraint").html("price");
+    $('#maxconf-sel').attr('checked', 'checked');
+    $("#price-slider-row").show();
+    $("#conf-slider-row").hide();
+};
+
+toggle_selections = function(obj) {
+    selected = obj.attr('data-toggle')
+    if(selected){
+	obj.attr('data-toggle', '');
+	obj.html('See suggestions <i class="icon-search icon-plus"></i>');
+	$('#details-table').hide();
+    } else {
+	obj.attr('data-toggle', 'toggle');
+	obj.html('Hide suggestions <i class="icon-search icon-minus"></i>');
+	$('#details-table').show('slow');
+    }
+}
+
+$(function() {
+    $('#maxconf-container').click(select_maxconf);
+    $('#minprice-container').click(select_minprice);
+    $('#show-suggs').click( function () {
+	toggle_selections($(this));
+    });
+});
+
+select_maxconf();

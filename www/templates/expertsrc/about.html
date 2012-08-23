@@ -1,0 +1,27 @@
+{% extends "expertsrc/base.html" %}
+
+{% block title %} About Expertsrc {% endblock title %}
+
+{% block content %} 
+<div class="span8 offset2">
+  <h1>About Expertsrc</h1>
+  <br />
+  <p class="lead">What, Why, How</p>
+  <hr />
+  <div>
+    Some cool stuff here explaining:
+    <ul>
+      <li>What they are doing</li>
+      <li>Why they are doing it</li>
+      <li>How they should do it</li>
+    </ul>
+  </div> 
+</div>
+
+{% endblock content %}
+
+{% block jquery %}
+<script type="text/javascript">
+  $("#nav-about").addClass("active");
+</script>
+{% endblock jquery %}

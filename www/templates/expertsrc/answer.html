@@ -6,12 +6,15 @@
 <div class="span8 offset2">
   <h1>Answer questions</h1>
   <br/>
-  <br/>
-  You have {{ num_questions }} pending question{%if num_questions != 1 %}s{% endif %}.
-  <br/>
-  <br/>
+  <p class="lead">You have <b>{{ num_questions }}</b> pending question{%if num_questions != 1 %}s{% endif %}.</p>
   {% if num_questions > 0 %}
-  <a href="/answer/next_question" class="btn btn-primary btn-large">Start answering</a>
+  <a href="/answer/next_question" class="btn btn-primary btn-large">Start answering <i class="icon-search icon-white icon-chevron-right"></i></a>
   {% endif %}
 </div>
 {% endblock content %} 
+
+{% block jquery %}
+<script type="text/javascript">
+  $("#nav-answer").addClass("active");
+</script>
+{% endblock jquery %}

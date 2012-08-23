@@ -26,6 +26,8 @@ urlpatterns = patterns('ui.views',
     url(r'^review/$', 'review_home'),
     url(r'^review/next/$', 'next_review'),
     url(r'^update_prices/$', 'update_prices'),
+    url(r'^tamer/$', 'redirect_to_tamer'),                   
+    url(r'^about/$', 'about'),
 )
 
 urlpatterns += patterns('',

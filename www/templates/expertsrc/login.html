@@ -10,6 +10,17 @@
       Hierarchical crowd sourcing.
     </p>
   </div>
+
+  <div class="row">
+    <div class="span6">
+      <p class="lead">
+	Please sign in with the credentials you recieved by email.
+      </p>
+    </div>
+  </div>
+
+  <br />
+
   <form action="/login/" method="POST" class="well form-inline">
     {% csrf_token %}
     {% if next %}
