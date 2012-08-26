@@ -199,7 +199,6 @@ def batch_panel(request, batch_id):
     profile = user.get_profile()
 
     c = locals()
-
     return render_to_response('expertsrc/batch_panel.html', c, context_instance=RequestContext(request))
 
 @login_required
@@ -209,7 +208,6 @@ def check_for_new_batches(request):
             most_recent = request.POST.get('most_recent', False)
             uid = request.POST.get('uid', False)
             owner = User.objects.get(pk=int(uid))
-
             if most_recent:
                 most_recent_dt = datetime.datetime.strptime(most_recent, "%Y-%m-%dT%H:%M:%S.%f")
                 batches = list(Batch.objects.filter(create_time__gt=most_recent_dt,owner=owner).order_by('create_time'))
@@ -218,49 +216,42 @@ def check_for_new_batches(request):
 
             if len(batches) == 0:
                 return HttpResponse('None') 
-
             c = locals()
-
             return render_to_response('expertsrc/batch_rows.html', c)
 
 @login_required
 def get_allocation_suggestions(request):
-    response = dict()
+    response = {} 
     if request.is_ajax():
         if request.method == 'POST':
-
             batch = get_object_or_404(Batch, pk=request.POST['batch_id'])
+            alg_type = request.POST.get('alg_type')
+            domain_id = request.POST.get('domain_id')
             question_ids = request.POST.getlist('question_ids[]')
             batch_size = len(question_ids)
+            allocs = [] 
 
-            sample_size = batch_size * 10
+            if alg_type == 'max_conf':
+                max_price = request.POST.get('price')
+                allocs = max_conf(domain_id, float(max_price), batch_size)
+            elif alg_type == 'min_price':
+                min_conf = request.POST.get('confidence')
+                allocs = min_price(domain_id, float(min_conf) / 100.0, batch_size)
+            else:
+                response['status'] = 'error'
+                response['msg'] = 'Unrecognized allocation selection algorithm.'
+                return dict_to_json_response(response)
 
-            allocs = get_allocations_by_domain(int(request.POST['domain_id']), 
-                                               sample_size=sample_size,
-                                               min_size=int(request.POST['min_size']),
-                                               max_size=int(request.POST['max_size']),
-                                               min_confidence=float(request.POST.get('confidence')),
-                                               max_price=float(request.POST.get('price')),)
             if len(allocs) < batch_size:
                 response['status'] = 'error'
                 response['msg'] = 'Could not allocate users for all questions.'
                 return dict_to_json_response(response)
 
-            # select indexes of suggested allocations
-            idxs = random.sample(range(len(allocs)), batch_size)
-            idx_set = set(idxs)
-            response['unused'] = list()
             response['status'] = 'OK'
+            response['unused'] = []
 
-            for x in range(len(allocs)):
-                alloc = allocs[x].get_dict()
-                if x in idx_set:
-                    # distribute them in no particular order...
-                    qid = random.choice(question_ids)
-                    question_ids.remove(qid)
-                    response[qid] = alloc
-                else:
-                    response['unused'].append(alloc)
+            for idx in xrange(batch_size):
+                response[question_ids[idx]] = allocs[idx].get_dict()
 
             return dict_to_json_response(response)
     else:
@@ -312,7 +303,7 @@ def commit_allocations(request):
             batch.is_allocated = True
             batch.save()
             response['status'] = 'success'
-            response['msg'] = 'Committed successfully.'
+            response['msg'] = 'Committed successfully. Redirecting...'
             return dict_to_json_response(response)
 
 def update_prices(request):

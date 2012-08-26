@@ -12,6 +12,9 @@
    padding:20px;
    padding-top:40px;
 }
+.centered {
+  text-align: center;
+}
 </style>
 {% endblock styles %}
 
@@ -20,43 +23,43 @@
 {% block sidebar %} {% endblock sidebar %}
 
 {% block content %}
+
 <input type="hidden" id="batch_id" value="{{batch.pk}}" />
+<input type="hidden" id="bank_balance" value="{{profile.bank_balance}}" />
+
 <div class="span8 offset2">
   <div class="row">
     <div>
       <h2>Select Workers</h2>
     </div> 
   </div>
-
   <hr />
-
   <div class="row">
     <div class="row span8">
       <p class="lead">
-	<b>Step 1:</b> Select a method for allocating crowd workers. <a href="#" class="btn btn-mini pull-right">More Info</a>
+	<b>Step 1:</b> Select a method for allocating crowd workers. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
       </p>
-      <div class="span6">
+      <div class="options span6">
 	<p id="maxconf-container">
-	  <input id="maxconf-sel" type="radio" name="alg-type" value="maxconf"> - <b>Maximize Confidence</b> 
+	  <input id="max_conf" type="radio" name="alg-type" value="max_conf"> - <b>Maximize Confidence</b> 
 	</p>
 	<p id="minprice-container">
-	  <input id="minprice-sel" type="radio" name="alg-type" value="minprice" /> - <b>Minimize Price</b> 
+	  <input id="min_price" type="radio" name="alg-type" value="min_price" /> - <b>Minimize Cumulative Price</b> 
 	</p>
       </div>
+      <div>
+	<a href="#" class="btn btn-large btn-primary" onclick="$('#constraint-panel').show();$(this).hide();"> OK </a>
+      </div>
     </div>
-
-    <a href="#" class="btn btn-large btn-primary pull-right" onclick="$('#constraint-panel').show();$(this).hide();"> OK </a>
-
     <br />
     <br />
-
     <div class="row span8">
       <hr />
       <p class="lead">
-	<b>Step 2:</b> Select <span id="constraint" name="constraint">price</span>  requirements. <a href="#" class="btn btn-mini pull-right">More Info</a>
+	<b>Step 2:</b> Select <span id="constraint" name="constraint">price</span>  requirements. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
       </p>
 
-      <div class="row hide" id="constraint-panel">
+      <div class="options row hide" id="constraint-panel">
 	<div class="span4">
 	  <div class="row row-fluid span10" style="margin-top:20px;">
 	    <div class="span6"><a id="get-allocs" class="btn btn-primary btn-large">Get Suggestions</a></div>
@@ -69,8 +72,9 @@
 	    <div class="row-fluid" id="conf-slider-row">
 	      <div class="control-group">
 		<div class="controls">
-		  <b>Confidence </b> <i class="icon-search icon-chevron-right"></i> 
-		  <input type="text" id="confidence" class="input-mini disabled" disabled/>
+		  <p>
+		    <b>Confidence </b> <i class="icon-search icon-chevron-right"></i> <span id="confidence" class="lead"></span>
+		  </p>
 		</div>
 		  <div class="span8">
 		    <div id="confidence-slider">
@@ -81,31 +85,15 @@
 	      <div class="row-fluid" id="price-slider-row">
 		<div class="control-group">
 		  <div class="controls">
-		    <b>Price </b> <i class="icon-search icon-chevron-left"></i> 
-		    <input type="text" id="price" class="input-mini disabled" disabled/>
+		    <p>
+		      <b>Cumulative Price </b> <i class="icon-search icon-chevron-left"></i> <span id="price" class="lead"></span>
+		    </p>
 		  </div>
 		  <div class="span8">
 		    <div id="price-slider"></div>
 		  </div>
 		</div>
 	      </div>
-	      <!-- <div class="row-fluid"> -->
-	      <!-- 	<div class="control-group span6 pull-left"> -->
-	      <!-- 	  <label for="amount-min" class="control-label">Min Size:</label> -->
-	      <!-- 	  <div class="controls"> -->
-	      <!-- 	    <input type="text" id="amount-min" class="input-mini disabled" disabled/> -->
-	      <!-- 	  </div> -->
-	      <!-- 	</div> -->
-	      <!-- 	<div class="control-group span6 pull-right"> -->
-	      <!-- 	  <label for="amount-max" class="control-label">Max Size:</label> -->
-	      <!-- 	  <div class="controls"> -->
-	      <!-- 	    <input type="text" id="amount-max" class="input-mini disabled" disabled/> -->
-	      <!-- 	  </div> -->
-	      <!-- 	</div> -->
-	      <!-- 	<div class="span8"> -->
-	      <!-- 	  <div id="alloc-size-slider"></div> -->
-	      <!-- 	</div> -->
-	      <!-- </div> -->
 	    </form>
 	  </div> 
 	<br />
@@ -116,10 +104,10 @@
       <div class="row span8">
 	<hr />
 	<p class="lead">
-	  <b>Step 3:</b> Review and confirm suggestions. <a href="#" class="btn btn-mini pull-right">More Info</a>
+	  <b>Step 3:</b> Review and confirm suggestions. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
 	</p>
 
-	<div class="row row-fluid hide span8" id="alloc-stats">
+	<div class="options row row-fluid hide span8" id="alloc-stats">
 	  <div class="span6">
 	    <div class="span8">
 	      <h2>Allocation Stats</h2>
@@ -127,16 +115,11 @@
 	      <p>
 		<span><strong>Average Confidence:</strong><span id="average-confidence" class="pull-right"></span></span>
 	      </p>
-	      <!-- <p> -->
-	      <!--   <span><strong>Average Size:</strong><span id="average-alloc-size" class="pull-right"></span></span> -->
-	      <!-- </p> -->
 	      <p>
 		<span><strong>Cumulative Price:</strong><span id="cumulative-price" class="pull-right"></span></span>
 	      </p>
 	      <br />
-	      <div class="row">
-		<a id="show-suggs" href="#"  data-toggle="">See suggestions <i class="icon-search icon-plus"></i></a>
-	      </div>
+	      <a id="show-suggs" href="#"  data-toggle="">See suggestions <i class="icon-search icon-plus"></i></a>      
 	      <br />
 	    </div>
 	  </div>
@@ -164,6 +147,7 @@
 	      <div><a id="commit-allocs" class="btn btn-success btn-large pull-right">Approve</a></div>
 	    </div>
 	  </div>
+	  <br />
 	  <div class="alert alert-info" style="display:none;" id="status">
 	  </div>
 	  <div class="alert alert-error" style="display:none;" id="error">
