@@ -1,15 +1,16 @@
 
 $(function() {
+    var balance = $('#bank_balance').val()
     $("#price-slider").slider({
 	range: "min",
-	value: 20,
+	value: balance/2,
 	min: 0,
-	max: 100,
+	max: balance,
 	slide: function( event, ui ) {
-	    $("#price").val(ui.value)
+	    $("#price").html(ui.value)
 	}
     });
-    $("#price").val($("#price-slider").slider("value"))
+    $("#price").html($("#price-slider").slider("value"))
 });
 
 $(function() {
@@ -19,10 +20,10 @@ $(function() {
 	min: 50,
 	max: 100,
 	slide: function( event, ui ) {
-	    $("#confidence").val(ui.value)
+	    $("#confidence").html(ui.value)
 	}
     });
-    $("#confidence").val($("#confidence-slider").slider("value"))
+    $("#confidence").html($("#confidence-slider").slider("value"))
 });
 
 get_modal_html = function (data) {
@@ -71,8 +72,8 @@ $(function() {
 	var batch_id = $('#batch_id').val();
 	var question_ids = $('input[name=question_id]').map(function(){return $(this).val();}).get();
 	var domain_id = $('input[name=domain_id]').val();
-	var confidence = $('#confidence').val();
-	var price = $('#price').val();
+	var confidence = $('#confidence').html();
+	var price = $('#price').html();
 	var spinner = new Spinner(opts).spin();
 
 	$("#get-allocs").text("Loading...");

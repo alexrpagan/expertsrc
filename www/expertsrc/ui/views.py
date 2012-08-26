@@ -197,6 +197,7 @@ def batch_panel(request, batch_id):
     questions = QuestionModel.objects.filter(batch=batch)
 
     profile = user.get_profile()
+
     c = locals()
     return render_to_response('expertsrc/batch_panel.html', c, context_instance=RequestContext(request))
 
