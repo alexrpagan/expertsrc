@@ -104,6 +104,138 @@ def update_prices():
         results[domain.id] = response
     return results
 
+def max_conf(domain_id, max_price, number_of_questions):
+    """
+    For all questions in a batch, select (in order) the allocation having the maximal confidence
+    which also has a price lower than the one specified.
+    """
+    get_frame = """ SELECT c.confidence_score, array_accum(a.user_id) user_id_set, sum(l.price) price
+                    FROM allocations AS a, alloc_conf_scores as c, ui_level as l 
+                    WHERE a.domain_id = %s
+                      AND a.allocation_id = c.allocation_id
+                      AND a.domain_id = c.domain_id
+                      AND a.user_level = l.level_number
+                    GROUP BY a.allocation_id, c.confidence_score
+                    HAVING sum(l.price) < %s AND NOT array_accum(a.user_id) && %s
+                    ORDER BY c.confidence_score DESC 
+                    OFFSET %s
+                    LIMIT %s """
+
+    avg_price = float(max_price) / number_of_questions
+    frame_size = 2 * number_of_questions
+    return optimized_alloc_selector(domain_id, get_frame, avg_price, number_of_questions, frame_size)
+    
+def min_price(domain_id, min_conf, number_of_questions):
+    """
+    For all questions in a batch, select (in order) the allocation having the minimal price which
+    meets the given confidence requirements.
+    """
+    import pdb
+    get_frame = """ SELECT c.confidence_score, array_accum(a.user_id) user_id_set, sum(l.price) price
+                    FROM allocations AS a, alloc_conf_scores as c, ui_level as l 
+                    WHERE a.domain_id = %s
+                      AND c.confidence_score >= %s
+                      AND a.allocation_id = c.allocation_id
+                      AND a.domain_id = c.domain_id
+                      AND a.user_level = l.level_number
+                    GROUP BY a.allocation_id, c.confidence_score
+                    HAVING NOT array_accum(a.user_id) && %s
+                    ORDER BY sum(l.price) ASC 
+                    OFFSET %s
+                    LIMIT %s """
+#    pdb.set_trace()
+    frame_size = 2 * number_of_questions
+    return optimized_alloc_selector(domain_id, get_frame, min_conf, number_of_questions, frame_size)
+
+@transaction.commit_on_success
+def get_avail_answerers(domain_id):
+    cursor = connection.cursor()
+    # TODO: change so that pending questions are subtracted from num_to_answer
+
+    cmd = """ SELECT o.user_id, o.num_to_answer
+              FROM answerer_overview o
+              WHERE o.domain_id = %s """
+
+    vals = (domain_id,)
+    cursor.execute(cmd, vals)
+    num_available = {}
+    for rec in cursor.fetchall():
+        num_available[rec[0]] = rec[1] 
+    return num_available
+
+@transaction.commit_on_success
+def optimized_alloc_selector(domain_id, get_frame_cmd, constraint, number_of_questions, frame_size):
+    # TODO: acquire mutex here... 
+    
+    num_available = get_avail_answerers(domain_id)
+    cursor = connection.cursor()
+
+    frame = []
+    alloc = []
+    
+    tapped_out = set()
+
+    curr_question = 0
+    frame_position = 0
+    workers_left = 0
+
+    for key in num_available.keys():
+        if num_available[key] == 0:
+            tapped_out.add(key)
+        else:
+            workers_left += num_available[key]
+
+    offset = 0
+
+    while True: 
+        if curr_question == number_of_questions:
+            # we've answered all the questions
+            break
+
+        questions_left = number_of_questions - curr_question
+
+        if workers_left < questions_left:
+            # not enough workers to allocate the rest of the questions
+            return []
+
+        if frame_position == len(frame):
+            parms = (domain_id, constraint, list(tapped_out), offset, frame_size,)
+            cursor.execute(get_frame_cmd, parms)
+            frame = dictfetchall(cursor)
+            offset += frame_size
+            if len(frame) < frame_size and len(frame) < questions_left:
+                # not enough allocations to assign to the rest of the questions
+                return []
+            frame_position = 0
+
+        #try to allocate question
+        res_wrk_cpy = dict(num_available)
+        a = frame[frame_position]
+        has_the_goods = True
+
+        for user_id in a['user_id_set']:
+            if res_wrk_cpy[user_id] > 0:
+                res_wrk_cpy[user_id] -= 1
+                workers_left -= 1
+            else:
+                tapped_out.add(user_id)
+                has_the_goods = False
+                break
+
+        if has_the_goods:
+            new_alloc = Allocation()
+            new_alloc.confidence=a['confidence_score']
+            new_alloc.price=a['price']
+            new_alloc.members=a['user_id_set']
+            curr_question += 1
+            alloc.append(new_alloc)
+            num_available = dict(res_wrk_cpy)
+        else:
+            frame_position += 1
+
+    return alloc
+
+
 @transaction.commit_on_success
 def get_allocations_by_domain(domain_id, sample_size=10, min_size=1, max_size=7, min_confidence=50, max_price=1000):
     cursor = connection.cursor()
