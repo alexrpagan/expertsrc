@@ -16,40 +16,10 @@
     </p>
   </div>
 </div>
-<br />
-<!--
-<section id="overview">
-  {% if overview %}
-  <div class="row">
-    <table class="table">
-      <thead>
-	<tr>
-	  <th>Domain</th>
-	  <th>Quota (q's/week)</th>
-	  <th>Number answered</th>
-	  <th>Accuracy</th>
-	  <th>Level</th>
-	</tr>
-      </thead>
-      <tbody>
-	{% for entry in overview %}
-	<tr>
-	  <td>{{ entry.short_name }}</td>
-	  <td>{{ entry.question_quota }}</td>
-	  <td>{{ entry.num_answered }}</td>
-	  <td>{{ entry.accuracy }}</td>
-	  <td>{{ entry.user_level }}</td>
-	</tr>
-	{% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-</section>
--->
 
+{% if overview %}
 <section id="overview">
-  {% if overview %}
+  <br />
   <div class="row">
     <div class="span8">
       <table class="table" id="domain-overview">
@@ -72,11 +42,7 @@
 	    </td>
 	    <td>
 	      <span class="badge badge-success">
-		{% if entry.num_answered == 0 %}
-		None
-		{% else %}
 		{{ entry.num_answered }}
-		{% endif %}
 	      </span>
 	    </td>
 	    <td>
@@ -95,9 +61,9 @@
   </div>
   <br />
   <br />
+  <hr />
   {% endif %}
 </section>
-<hr />
 <section id="user-profile-info">
   <div class="row">
     {% if not is_answerer %}
