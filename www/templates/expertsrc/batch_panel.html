@@ -119,42 +119,41 @@
 		<span><strong>Cumulative Price:</strong><span id="cumulative-price" class="pull-right"></span></span>
 	      </p>
 	      <br />
-	      <a id="show-suggs" href="#"  data-toggle="">See suggestions <i class="icon-search icon-plus"></i></a>      
+	      <a class="btn" id="show-suggs" href="#"  data-toggle="">See suggestions <i class="icon-search icon-plus"></i></a>      
+	      <br />
 	      <br />
 	    </div>
 	  </div>
-	</div>
-
-	<div class="row">
-	  <div id="questions" class="hide">
-	    <table class="table hide" id="details-table">
-	      <thead>
+	  <br />
+	  <div class="row">
+	    <div id="questions" class="hide">
+	      <div class="row"><a id="commit-allocs" class="btn btn-success btn-large">Approve</a></div>
+	      <table class="table hide" id="details-table">
+		<thead>
 		<tr>
-		  <th>#</th>
 		  <th>Local Field Name</th>
 		  <!--<th>Allocation details</th>-->
 		  <th>Number of workers</th>
 		  <th>Expected confidence</th>
 		  <th>Price</th>
 		</tr>
-	      </thead>
-	      <tbody>
-		{% include "expertsrc/allocation_rows.html" %}
-	      </tbody>
-	    </table>
-	    <hr />
-	    <div class="row">
-	      <div><a id="commit-allocs" class="btn btn-success btn-large pull-right">Approve</a></div>
+		</thead>
+		<tbody>
+		  {% include "expertsrc/allocation_rows.html" %}
+		</tbody>
+	      </table>
+	      <hr />
 	    </div>
-	  </div>
-	  <br />
-	  <div class="alert alert-info" style="display:none;" id="status">
-	  </div>
-	  <div class="alert alert-error" style="display:none;" id="error">
 	  </div>
 	</div>
       </div>
-    </div>
+      <br />
+      <br />
+      <div class="row">
+	<br /><br />
+	<div class="hide alert alert-info" id="status"></div>
+	<div class="hide alert alert-error" id="error"></div>
+      </div>
   </div>
 {% endblock content %}
 
