@@ -14,26 +14,16 @@ import ui
 @transaction.commit_on_success
 def get_answerer_domain_overview(user):
     cursor = connection.cursor()
-    # cmd = """SELECT * FROM answerer_overview
-    #          WHERE user_id = %s"""
-    cmd = """ SELECT o.*, p.num_pending, o.num_answered + p.num_pending as num_assigned
-              FROM answerer_overview as o
-              LEFT JOIN
-                 (SELECT a.answerer_id, q.domain_id, COUNT(a.question_id) AS num_pending
-                  FROM ui_assignment AS a JOIN ui_basequestion AS q ON a.question_id = q.id
-                  WHERE completed = 'f'
-                  GROUP BY a.answerer_id, q.domain_id) AS p
-              ON p.answerer_id = o.user_id AND p.domain_id = o.domain_id
-              WHERE o.user_id = %s
-              ORDER BY o.accuracy DESC, o.short_name"""
+    cmd = """ SELECT o.*, o.num_answered + o.num_pending as total_answered 
+              FROM answerer_overview as o WHERE user_id = %s """
     cursor.execute(cmd, [user.id])
     return dictfetchall(cursor)
 
 @transaction.commit_on_success
 def get_overview_record(user, domain):
     cursor = connection.cursor()
-    cmd = """SELECT user_level, price FROM answerer_overview
-             WHERE user_id = %s and domain_id = %s"""
+    cmd = """ SELECT user_level, price FROM answerer_overview
+              WHERE user_id = %s and domain_id = %s """
     cursor.execute(cmd, [user.id, domain.id])
     res = dictfetchall(cursor)
     return res[0]
@@ -41,15 +31,9 @@ def get_overview_record(user, domain):
 @transaction.commit_on_success
 def get_global_user_overview():
     cursor = connection.cursor()
-    cmd = """ SELECT o.username, o.short_name, o.question_quota, o.accuracy, o.user_level, p.num_pending
+    cmd = """ SELECT username, short_name, question_quota, accuracy, user_level, num_pending
               FROM answerer_overview as o
-              LEFT JOIN
-                 (SELECT a.answerer_id, q.domain_id, COUNT(a.question_id) AS num_pending
-                  FROM ui_assignment AS a JOIN ui_basequestion AS q ON a.question_id = q.id
-                  WHERE completed = 'f'
-                  GROUP BY a.answerer_id, q.domain_id) AS p
-              ON p.answerer_id = o.user_id AND p.domain_id = o.domain_id
-              ORDER BY o.accuracy DESC, o.short_name"""
+              ORDER BY o.accuracy DESC, o.short_name """
     cursor.execute(cmd)
     res = dictfetchall(cursor)
     return res
@@ -152,7 +136,7 @@ def get_avail_answerers(domain_id):
     cursor = connection.cursor()
     # TODO: change so that pending questions are subtracted from num_to_answer
 
-    cmd = """ SELECT o.user_id, o.num_to_answer
+    cmd = """ SELECT o.user_id, o.num_to_answer - o.num_pending
               FROM answerer_overview o
               WHERE o.domain_id = %s """
 
