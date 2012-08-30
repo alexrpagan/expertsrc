@@ -298,7 +298,6 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
     @staticmethod
     @transaction.commit_on_success
     def import_batch(batch_obj):
-        import pdb
         """
         Note: this currently always allocates the same reviewer to every question.
         Change this.
@@ -330,8 +329,6 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             if fid_answer_cnt[answer.local_field_id] == 0:
                 answerer.get_paid(question)
                 fid_answer_cnt[answer.local_field_id] += 1
-            else:
-                print "dup!"
 
 class SchemaMapReview(BaseReview, BatchSupport):
     @staticmethod
