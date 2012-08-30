@@ -298,10 +298,12 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
     @staticmethod
     @transaction.commit_on_success
     def import_batch(batch_obj):
+        import pdb
         """
         Note: this currently always allocates the same reviewer to every question.
         Change this.
         """
+        fid_answer_cnt = {}
         reviewer = None
         for answer in batch_obj.answer:
             answerer = User.objects.get(pk=answer.answerer_id)
@@ -314,6 +316,9 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             sma.confidence = answer.confidence
             sma.authority = answer.authority
             sma.global_attribute_id = answer.global_attribute_id
+            fid_answer_cnt.setdefault(answer.local_field_id, 
+                                      SchemaMapAnswer.objects.filter(answerer=answerer, 
+                                                                     local_field_id=answer.local_field_id).count())
             sma.local_field_id = answer.local_field_id
             sma.is_match = answer.is_match
             sma.save()
@@ -321,7 +326,12 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             assn = Assignment.objects.get(answerer=answerer, question=sma.question)
             assn.completed = True
             assn.save()
-            answerer.get_paid(question)
+            # only pay for one answer per local_field_id
+            if fid_answer_cnt[answer.local_field_id] == 0:
+                answerer.get_paid(question)
+                fid_answer_cnt[answer.local_field_id] += 1
+            else:
+                print "dup!"
 
 class SchemaMapReview(BaseReview, BatchSupport):
     @staticmethod
