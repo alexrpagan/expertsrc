@@ -55,13 +55,12 @@
 	</tbody>
       </table>
       <hr />
-      <a href="#" class="btn btn-mini" rel="popover" data-content="Questions are sorted into <b>domains</b> based on the types of expertise needed to answer them. This is a breakdown of the domains and questions that you've been assigned." data-original-title="Domain Table">More info</a>
-      <a href="/answer/next_question" class="btn btn-mini btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i> </a>
+      <a href="#" class="btn" rel="popover" data-content="Questions are sorted into <b>domains</b> based on the types of expertise needed to answer them. This is a breakdown of the domains and questions that you've been assigned." data-original-title="Domain Table">More info</a>
+      <a href="/answer/next_question" class="btn btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i> </a>
     </div>
   </div>
   <br />
   <br />
-  <hr />
   {% endif %}
 </section>
 <section id="user-profile-info">
@@ -103,16 +102,17 @@
     </div>
     {% endif %}
     -->
+    {% if not is_answerer %} 
     <div class="span4">
       <b>User Class:</b>
       <h2> {% if is_answerer %} Answerer {% else %} Asker {% endif %} </h2>
 	<br />
 	<a href="#" rel="popover" data-content="Users that can ask questions of the crowd are <b>Askers</b>. Users that can answer questions are <b>Answerers</b>." data-original-title="User Class" class="btn btn-mini">More info</a>
     </div>
+    {% endif %}
     
   </div>
 </section>
-<hr/>
 {% endblock content %} 
 
 {% block jquery %}
