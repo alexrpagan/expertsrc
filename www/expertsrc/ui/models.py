@@ -69,6 +69,23 @@ class UserFunctions:
 
 User.__bases__ += (UserFunctions,)
 
+class Feedback(models.Model):
+    SENTIMENTS = (
+        (1, 'Positive'),
+        (0, 'Mixed'),
+        (-1, 'Negative'),
+    )
+    user = models.ForeignKey(User)
+    sentiment = models.IntegerField(choices=SENTIMENTS)
+    improvements = models.TextField(blank=True)
+    comments = models.TextField(blank=True)
+    create_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+class FeedbackForm(ModelForm):
+    class Meta:
+        model = Feedback
+        exclude = ('user',)
+    
 class Domain(models.Model):
     # no spaces here.
     short_name = models.CharField(max_length=MAX_CHAR_LENGTH)
@@ -86,11 +103,16 @@ class UserProfile(models.Model):
     user_class = models.CharField(max_length=3, choices=USER_CLASS_CHOICES)
     bank_balance = models.FloatField(default=0)
     domains = models.ManyToManyField(Domain, through='Expertise')
+    has_been_assigned = models.BooleanField(default=False)
 
 class UserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         exclude = ('domains', 'user', 'bank_balance',)
+
+class TempAccuracy(models.Model):
+    user = models.ForeignKey(User)
+    accuracy = models.FloatField(default=.5)
 
 class Level(models.Model):
     domain = models.ForeignKey(Domain)

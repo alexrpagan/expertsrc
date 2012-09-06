@@ -102,8 +102,46 @@ def next_question(request):
 @login_required
 def answer_home(request):
     user = request.user
+    context = {}
+
     num_questions = Assignment.objects.filter(answerer=user, completed=False).count()
-    return render_to_response('expertsrc/answer.html', locals())
+    context['num_questions'] = num_questions
+    context['user'] = user
+
+    if user.get_profile().has_been_assigned and num_questions == 0:
+        context['display_interview'] = 1
+    else:
+        context['display_interview'] = 0
+
+    if request.method == 'POST':
+        context['form'] = form = FeedbackForm(request.POST)
+        if form.is_valid():
+            feedback = Feedback()
+            feedback.user = user
+            feedback.sentiment = form.cleaned_data['sentiment']
+            feedback.improvements = form.cleaned_data['improvements']
+            feedback.comments = form.cleaned_data['comments']
+            feedback.save()
+            return HttpResponseRedirect('/thanks')
+        return render_to_response('expertsrc/answer.html', context)
+
+    context['form'] = FeedbackForm()
+    return render_to_response('expertsrc/answer.html', context)
+
+
+@login_required
+def thanks_and_goodbye(request):
+    user = request.user
+    profile = user.get_profile()
+    profile.has_been_assigned = False
+    profile.save()
+    #TODO: set to true and test
+    disable_account = True
+    logout(request)
+    if disable_account:
+        user.is_active = False
+        user.save()
+    return render_to_response('expertsrc/thanks_and_goodbye.html')
 
 @login_required
 def implicit_overview(request):
@@ -299,6 +337,11 @@ def commit_allocations(request):
                     assn.agreed_price = get_overview_record(assn.answerer, q.domain)['price']
                     assn.complete = False
                     assn.save()
+
+                    # remove after initial demo
+                    profile = assn.answerer.get_profile()
+                    profile.has_been_assigned = True
+                    profile.save()
 
             batch.is_allocated = True
             batch.save()

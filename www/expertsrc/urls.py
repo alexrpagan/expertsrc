@@ -28,6 +28,7 @@ urlpatterns = patterns('ui.views',
     url(r'^update_prices/$', 'update_prices'),
     url(r'^tamer/$', 'redirect_to_tamer'),                   
     url(r'^about/$', 'about'),
+    url(r'^thanks/$', 'thanks_and_goodbye'),
 )
 
 urlpatterns += patterns('',

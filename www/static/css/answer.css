@@ -1,0 +1,17 @@
+.info {
+    padding:5px;
+}
+
+.answer-form {
+    width: 95%;
+    margin: 0 auto;
+}
+
+.answer-form .question {
+    padding: 5px;
+    margin:5px;
+}
+
+textarea {
+    width: 100%;
+}
