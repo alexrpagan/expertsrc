@@ -9,12 +9,12 @@ import multiprocessing
 # settings for the input table
 CONF_FUNCTIONS = ['ecc', 'poisson_binomial_conf']
 FUNC_NO = 1
-DOMAIN_ID = 25
-TOTAL_NUMBER = 27894
+DOMAIN_ID = 28
+TOTAL_NUMBER = 198438
 
 # (1 / REDUNDANCY_FACTOR) of total cores are used
 # TODO: rename this
-REDUNDANCY_FACTOR = 2
+REDUNDANCY_FACTOR = 1
 
 # psycopg2 connection information
 DBNAME = 'expertsrc' 

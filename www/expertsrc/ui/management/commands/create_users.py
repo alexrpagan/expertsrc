@@ -21,6 +21,8 @@ NUMBER_OF_ANSWERERS=20
 AVERAGE_ACCURACY=.8
 STD_DEV_OF_ACCURACY=.05
 AVERAGE_PERCENT_TRUE=.6
+USE_FAKE_ACCURACY=True
+
 
 def generate_names(limit=NUMBER_OF_ANSWERERS):
     return ['ans'+str(x) for x in range(1, limit+1)]
@@ -81,8 +83,11 @@ class Command(NoArgsCommand):
                                   user_class='ANS',
                                   bank_balance=0)
             profile.save()
-            
-            e = Expertise(user=profile, domain=domain, question_quota=50)
+
+            temp_acc = TempAccuracy(user=user, accuracy=expected_percent_correct[user])
+            temp_acc.save()
+
+            e = Expertise(user=profile, domain=domain, question_quota=15)
             e.save()
 
         print 'creating a phony data tamer application'
@@ -112,6 +117,10 @@ class Command(NoArgsCommand):
         schemamap.review_class = ContentType.objects.get(app_label='ui', model='schemamapreview')
         schemamap.save()
         
+        if USE_FAKE_ACCURACY:
+            print 'done'
+            return
+
         print 'creating some phony questions...'
         for x in range(0, NUMBER_OF_QUESTIONS):
             question = NRTrainingQuestion(asker=asker,
