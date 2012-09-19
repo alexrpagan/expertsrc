@@ -10,7 +10,7 @@ import multiprocessing
 CONF_FUNCTIONS = ['ecc', 'poisson_binomial_conf']
 FUNC_NO = 1
 DOMAIN_ID = 28
-TOTAL_NUMBER = 198438
+TOTAL_NUMBER = 198439
 
 # (1 / REDUNDANCY_FACTOR) of total cores are used
 # TODO: rename this
@@ -99,6 +99,26 @@ def clean_up_db(pool):
     conn.commit()
     pool.putconn(conn)
 
+def denormalize_allocs(pool):
+    print 'denormalizing allocations table'
+    cmd = """ DROP TABLE IF EXISTS allocs_joined;
+              SELECT c.confidence_score, array_accum(a.user_id) user_id_set, sum(l.price) price, c.domain_id
+              INTO allocs_joined
+              FROM allocations AS a
+                  JOIN alloc_conf_scores as c
+                       ON ( a.allocation_id = c.allocation_id AND
+                            a.domain_id = c.domain_id )
+                  JOIN ui_level as l
+                       ON ( a.user_level = l.level_number )
+              GROUP BY a.allocation_id, c.confidence_score, c.domain_id;
+             CREATE INDEX allocs_joined_confidence_score_idx ON allocs_joined ( confidence_score DESC );
+             CREATE INDEX allocs_joined_price_idx ON allocs_joined ( price ASC );"""
+    conn = pool.getconn()
+    cursor = conn.cursor()
+    cursor.execute(cmd)
+    conn.commit()
+    pool.putconn(conn)
+
 def get_number_of_partitions():
     cores = multiprocessing.cpu_count()
     factor = REDUNDANCY_FACTOR
@@ -154,6 +174,8 @@ def main():
     
     merge_data_tables(conn_pool)
     clean_up_db(conn_pool)
+    denormalize_allocs(conn_pool)
+
     conn_pool.closeall()
 
 if __name__ == "__main__":

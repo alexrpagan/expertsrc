@@ -1,15 +1,15 @@
 from django.db import connection, transaction
 from itertools import izip
+
+import ui
 from ui.utils import *
 from ui.pricing import *
+from ui.models import *
+
 import random
 import logging
 import itertools
 import math
-
-from ui.models import *
-
-import ui
 
 @transaction.commit_on_success
 def get_answerer_domain_overview(user):
@@ -93,19 +93,19 @@ def max_conf(domain_id, max_price, number_of_questions):
     For all questions in a batch, select (in order) the allocation having the maximal confidence
     which also has a price lower than the one specified.
     """
-    get_frame = """ SELECT c.confidence_score, array_accum(a.user_id) user_id_set, sum(l.price) price
-                    FROM allocations AS a, alloc_conf_scores as c, ui_level as l 
-                    WHERE a.domain_id = %s
-                      AND a.allocation_id = c.allocation_id
-                      AND a.domain_id = c.domain_id
-                      AND a.user_level = l.level_number
-                    GROUP BY a.allocation_id, c.confidence_score
-                    HAVING sum(l.price) < %s AND NOT array_accum(a.user_id) && %s
-                    ORDER BY c.confidence_score DESC 
+    get_frame = """ SELECT confidence_score, user_id_set, price
+                    FROM allocs_joined
+                    WHERE domain_id = %s
+                      AND price < %s
+                      AND NOT user_id_set && %s
+                    ORDER BY confidence_score DESC
                     OFFSET %s
                     LIMIT %s """
 
-    avg_price = float(max_price) / number_of_questions
+    avg_price = 0
+    if number_of_questions:
+        avg_price = float(max_price) / number_of_questions
+
     frame_size = 2 * number_of_questions
     return optimized_alloc_selector(domain_id, get_frame, avg_price, number_of_questions, frame_size)
     
@@ -114,20 +114,15 @@ def min_price(domain_id, min_conf, number_of_questions):
     For all questions in a batch, select (in order) the allocation having the minimal price which
     meets the given confidence requirements.
     """
-    import pdb
-    get_frame = """ SELECT c.confidence_score, array_accum(a.user_id) user_id_set, sum(l.price) price
-                    FROM allocations AS a, alloc_conf_scores as c, ui_level as l 
-                    WHERE a.domain_id = %s
-                      AND c.confidence_score >= %s
-                      AND a.allocation_id = c.allocation_id
-                      AND a.domain_id = c.domain_id
-                      AND a.user_level = l.level_number
-                    GROUP BY a.allocation_id, c.confidence_score
-                    HAVING NOT array_accum(a.user_id) && %s
-                    ORDER BY sum(l.price) ASC 
+    get_frame = """ SELECT confidence_score, user_id_set, price
+                    FROM allocs_joined
+                    WHERE domain_id = %s
+                      AND confidence_score >= %s
+                      AND NOT user_id_set && %s
+                    ORDER BY price ASC
                     OFFSET %s
                     LIMIT %s """
-#    pdb.set_trace()
+    
     frame_size = 2 * number_of_questions
     return optimized_alloc_selector(domain_id, get_frame, min_conf, number_of_questions, frame_size)
 
@@ -149,16 +144,12 @@ def get_avail_answerers(domain_id):
 
 @transaction.commit_on_success
 def optimized_alloc_selector(domain_id, get_frame_cmd, constraint, number_of_questions, frame_size):
-    # TODO: acquire mutex here... 
-    
+    # TODO: acquire mutex here...     
     num_available = get_avail_answerers(domain_id)
     cursor = connection.cursor()
-
     frame = []
     alloc = []
-    
     tapped_out = set()
-
     curr_question = 0
     frame_position = 0
     workers_left = 0
@@ -170,14 +161,12 @@ def optimized_alloc_selector(domain_id, get_frame_cmd, constraint, number_of_que
             workers_left += num_available[key]
 
     offset = 0
-
     while True: 
         if curr_question == number_of_questions:
             # we've answered all the questions
             break
 
         questions_left = number_of_questions - curr_question
-
         if workers_left < questions_left:
             # not enough workers to allocate the rest of the questions
             return []
