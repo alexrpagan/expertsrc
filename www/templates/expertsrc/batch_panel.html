@@ -15,12 +15,21 @@
 .centered {
   text-align: center;
 }
+.option-block {
+  margin-bottom:15px;
+}
+.msg-box {
+  position:absolute;
+  margin: 0px auto;
+  bottom:0;
+}
+
 </style>
 {% endblock styles %}
 
 {% block title %}Select workers{% endblock title %}
 
-{% block sidebar %} {% endblock sidebar %}
+{% block sidebar %}{% endblock sidebar %}
 
 {% block content %}
 
@@ -35,7 +44,8 @@
   </div>
   <hr />
   <div class="row">
-    <div class="row span8">
+
+    <div class="row span8 option-block">
       <p class="lead">
 	<b>Step 1:</b> Select a method for allocating crowd workers. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
       </p>
@@ -50,10 +60,9 @@
       <div>
 	<a href="#" class="btn btn-large btn-primary" onclick="$('#constraint-panel').show();$(this).hide();"> OK </a>
       </div>
-    </div>
-    <br />
-    <br />
-    <div class="row span8">
+   </div>
+    
+    <div class="row span8 option-block">
       <hr />
       <p class="lead">
 	<b>Step 2:</b> Select <span id="constraint" name="constraint">price</span>  requirements. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
@@ -96,12 +105,13 @@
 	      </div>
 	    </form>
 	  </div> 
-	<br />
+	<br/>
 	<hr />
-	<br />
+	<br/>
 	</div>
       </div>
-      <div class="row span8">
+
+      <div class="row span8 option-block">
 	<hr />
 	<p class="lead">
 	  <b>Step 3:</b> Review and confirm suggestions. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
@@ -147,14 +157,13 @@
 	  </div>
 	</div>
       </div>
-      <br />
-      <br />
-      <div class="row">
-	<br /><br />
-	<div class="hide alert alert-info" id="status"></div>
-	<div class="hide alert alert-error" id="error"></div>
-      </div>
   </div>
+
+  <div class="msg-box span8">
+     <div class="hide alert alert-info" id="status"></div>
+     <div class="hide alert alert-error" id="error"></div>
+  </div>
+
 {% endblock content %}
 
 {% block jquery %}
