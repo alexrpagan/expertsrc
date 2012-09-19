@@ -16,7 +16,7 @@ $(function() {
 $(function() {
     $("#confidence-slider").slider({
 	range: "min",
-	value: 80,
+	value: 90,
 	min: 50,
 	max: 100,
 	slide: function( event, ui ) {
