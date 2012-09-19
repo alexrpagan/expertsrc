@@ -241,6 +241,25 @@ def get_allocations_by_domain(domain_id, sample_size=10, min_size=1, max_size=7,
         allocations.append(a)
     return allocations
 
+@transaction.commit_on_success
+def denormalize_allocs():
+    cmd = """ DROP TABLE IF EXISTS allocs_joined;
+              SELECT c.confidence_score, array_accum(a.user_id) user_id_set, sum(l.price) price, c.domain_id
+              INTO allocs_joined
+              FROM allocations AS a
+                  JOIN alloc_conf_scores as c
+                       ON ( a.allocation_id = c.allocation_id AND
+                            a.domain_id = c.domain_id )
+                  JOIN ui_level as l
+                       ON ( a.user_level = l.level_number )
+              GROUP BY a.allocation_id, c.confidence_score, c.domain_id;
+             CREATE INDEX allocs_joined_confidence_score_idx ON allocs_joined ( confidence_score DESC );
+             CREATE INDEX allocs_joined_price_idx ON allocs_joined ( price ASC );"""
+    cursor = connection.cursor()
+    cursor.execute(cmd)
+    connection.commit()
+
+
 class Allocation:
     confidence = 0
     price = 0
