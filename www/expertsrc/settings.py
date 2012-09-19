@@ -124,3 +124,5 @@ TAMER_URL = 'http://modis.csail.mit.edu:8080'
 TAMER_DB = 'goby'
 
 WATCHER_LOGFILE = '/home/apagan/logs/watchers.log'
+
+MASK_LEVELS = True

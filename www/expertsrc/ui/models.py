@@ -69,6 +69,23 @@ class UserFunctions:
 
 User.__bases__ += (UserFunctions,)
 
+class Feedback(models.Model):
+    SENTIMENTS = (
+        (1, 'Positive'),
+        (0, 'Mixed'),
+        (-1, 'Negative'),
+    )
+    user = models.ForeignKey(User)
+    sentiment = models.IntegerField(choices=SENTIMENTS)
+    improvements = models.TextField(blank=True)
+    comments = models.TextField(blank=True)
+    create_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+class FeedbackForm(ModelForm):
+    class Meta:
+        model = Feedback
+        exclude = ('user',)
+    
 class Domain(models.Model):
     # no spaces here.
     short_name = models.CharField(max_length=MAX_CHAR_LENGTH)
@@ -86,11 +103,16 @@ class UserProfile(models.Model):
     user_class = models.CharField(max_length=3, choices=USER_CLASS_CHOICES)
     bank_balance = models.FloatField(default=0)
     domains = models.ManyToManyField(Domain, through='Expertise')
+    has_been_assigned = models.BooleanField(default=False)
 
 class UserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         exclude = ('domains', 'user', 'bank_balance',)
+
+class TempAccuracy(models.Model):
+    user = models.ForeignKey(User)
+    accuracy = models.FloatField(default=.5)
 
 class Level(models.Model):
     domain = models.ForeignKey(Domain)
@@ -242,7 +264,7 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
             smq = SchemaMapQuestion()
             smq.batch = batch_rec
             smq.asker = batch_rec.owner 
-            smq.domain = Domain.objects.get(short_name='data-tamer')
+            smq.domain = Domain.objects.get(short_name='pharon-assay')
             smq.question_type = QuestionType.objects.get(short_name='schemamap')
             smq.local_field_id = question.local_field_id
             smq.local_field_name = question.local_field_name
@@ -302,26 +324,33 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
         Note: this currently always allocates the same reviewer to every question.
         Change this.
         """
+        fid_answer_cnt = {}
         reviewer = None
         for answer in batch_obj.answer:
             answerer = User.objects.get(pk=answer.answerer_id)
             sma = SchemaMapAnswer()
             question = sma.question = SchemaMapQuestion.objects.get(local_field_id=answer.local_field_id)
-            if not reviewer:
-                reviewer_dict = select_reviewer(question.domain)
-                reviewer = User.objects.get(pk=reviewer_dict['user_id'])
+#            if not reviewer:
+#                reviewer_dict = select_reviewer(question.domain)
+#                reviewer = User.objects.get(pk=reviewer_dict['user_id'])
             sma.answerer = answerer
             sma.confidence = answer.confidence
             sma.authority = answer.authority
             sma.global_attribute_id = answer.global_attribute_id
+            fid_answer_cnt.setdefault(answer.local_field_id, 
+                                      SchemaMapAnswer.objects.filter(answerer=answerer, 
+                                                                     local_field_id=answer.local_field_id).count())
             sma.local_field_id = answer.local_field_id
             sma.is_match = answer.is_match
             sma.save()
-            sma.register_for_review(reviewer=reviewer)
+ #           sma.register_for_review(reviewer=reviewer)
             assn = Assignment.objects.get(answerer=answerer, question=sma.question)
             assn.completed = True
             assn.save()
-            answerer.get_paid(question)
+            # only pay for one answer per local_field_id
+            if fid_answer_cnt[answer.local_field_id] == 0:
+                answerer.get_paid(question)
+                fid_answer_cnt[answer.local_field_id] += 1
 
 class SchemaMapReview(BaseReview, BatchSupport):
     @staticmethod

@@ -7,16 +7,38 @@
   <div class="hero-unit">
     <h1>Expertsrc</h1>
     <p>
-      Hierarchical crowd sourcing.
+      Crowd-sourcing data integration.
     </p>
   </div>
+
+  <div class="row">
+    <div style="margin-left:40px;">
+      <p class="lead">
+	Please sign in with the credentials you received by email.
+      </p>
+    </div>
+  </div>
+
+  <br />
+
   <form action="/login/" method="POST" class="well form-inline">
     {% csrf_token %}
     {% if next %}
     <input type="hidden" name="next" value="{{ next }}" />
     {% endif %}
-    <input class="input-small" type="text" name="username" placeholder="Username"/>
-    <input class="input-small" type="password" name="password"  placeholder="Password"/>
+
+    <!--[if IE]>
+    <label for="username"><b>Username:</b></label>
+    <![endif]-->
+
+    <input class="input-small" type="text" name="username" placeholder="Username" />
+
+    <!--[if IE]>
+    &nbsp;&nbsp;&nbsp;
+    <label for="password"><b>Password:</b></label>
+    <![endif]-->
+
+    <input class="input-small" type="password" name="password"  placeholder="Password" />
     <input type="submit" value="Log In" class="btn" />
   </form>
   {% if msg %}

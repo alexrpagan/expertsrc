@@ -1,9 +1,3 @@
-# Script to generate a random question workload from empty
-# database. Run 'python manage.py cleanup' to revert database to its
-# prior state. Answering ability is normally distributed across users,
-# with mean=70% correct. Every question is reviewed, and every review
-# is correct.  NB: currently question quotas are ignored. this should
-# be addressed in future versions.
 
 from django.core.management.base import NoArgsCommand
 from django.conf import settings
@@ -23,9 +17,20 @@ STD_DEV_OF_ACCURACY=.05
 AVERAGE_PERCENT_TRUE=.6
 USE_FAKE_ACCURACY=True
 
-
 def generate_names(limit=NUMBER_OF_ANSWERERS):
     return ['ans'+str(x) for x in range(1, limit+1)]
+
+def get_user_data():
+    user_data = []
+    user_list = ''
+    with open('/home/apagan/users.txt', 'r') as f:
+        user_list = f.read()        
+    lines = user_list.split('\n')
+    for line in lines:
+        split_email = line.split('@');
+        if split_email[0]:
+            user_data.append((split_email[0], line, 'demo1',))
+    return user_data    
 
 def get_expected_correct_rate(mu=AVERAGE_ACCURACY, sigma=STD_DEV_OF_ACCURACY):
     while True:
@@ -39,9 +44,9 @@ class Command(NoArgsCommand):
     def handle_noargs(self, **options):
         print 'creating data-tamer domain...'
         domain = Domain()
-        domain.short_name = 'data-tamer'
-        domain.long_name = 'Data Tamer Questions'
-        domain.description = 'lorem ipsum'
+        domain.short_name = 'pharon-assay'
+        domain.long_name = 'Pharon Assay Data'
+        domain.description = 'Assay data taken from pharon system.'
         domain.save()
 
         print 'creating levels...'
@@ -55,27 +60,34 @@ class Command(NoArgsCommand):
                       confidence_upper_bound=1)
         level.save()
 
-        print 'creating fake asker...'
-        asker = User.objects.create_user('ask', '', 'test')
-        asker.save()
-        profile = UserProfile(user=asker,
-                              user_class='ASK',
-                              bank_balance=1000)
-        profile.save()
+#         print 'creating fake asker...'
+#         asker = User.objects.create_user('ask', '', 'test')
+#         asker.save()
+#         profile = UserProfile(user=asker,
+#                               user_class='ASK',
+#                               bank_balance=1000)
+#         profile.save()
 
         
         answerers = []
-        print 'creating fake answerers...'
+        print 'creating users...'
         expected_percent_correct = {}
-        for name in generate_names():
-            u = User.objects.create_user(name, '', 'test')
-            answerers.append(u)
+
+        for d in get_user_data():
+            u = User.objects.create_user(d[0], d[1], d[2]);
+            answerers.append(u);
             expected_percent_correct[u] = get_expected_correct_rate()
+
+
+#         for name in generate_names():
+#             u = User.objects.create_user(name, '', 'test')
+#             answerers.append(u)
+#             expected_percent_correct[u] = get_expected_correct_rate()
             
-        print 'creating wolfgang...'
-        wg = User.objects.create_user('wolfgang', '', 'test')
-        answerers.append(wg)
-        expected_percent_correct[wg] = 1
+#         print 'creating wolfgang...'
+#         wg = User.objects.create_user('wolfgang', '', 'test')
+#         answerers.append(wg)
+#         expected_percent_correct[wg] = 1
         
         for user in answerers:
             user.save()
@@ -97,15 +109,15 @@ class Command(NoArgsCommand):
         app.ui_url = settings.TAMER_URL
         app.save()
 
-        print 'creating training question type'
-        train = QuestionType()
-        train.long_name = 'Training questions'
-        train.short_name = 'training'
-        train.app = app
-        train.question_class = ContentType.objects.get(app_label='ui', model='nrtrainingquestion')
-        train.answer_class = ContentType.objects.get(app_label='ui', model='nrtraininganswer')
-        train.review_class = ContentType.objects.get(app_label='ui', model='nrtrainingreview')
-        train.save()
+#         print 'creating training question type'
+#         train = QuestionType()
+#         train.long_name = 'Training questions'
+#         train.short_name = 'training'
+#         train.app = app
+#         train.question_class = ContentType.objects.get(app_label='ui', model='nrtrainingquestion')
+#         train.answer_class = ContentType.objects.get(app_label='ui', model='nrtraininganswer')
+#         train.review_class = ContentType.objects.get(app_label='ui', model='nrtrainingreview')
+#         train.save()
 
         print 'creating automated schema map question type'
         schemamap = QuestionType()

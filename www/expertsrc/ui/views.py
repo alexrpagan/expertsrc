@@ -102,8 +102,46 @@ def next_question(request):
 @login_required
 def answer_home(request):
     user = request.user
+    context = {}
+
     num_questions = Assignment.objects.filter(answerer=user, completed=False).count()
-    return render_to_response('expertsrc/answer.html', locals())
+    context['num_questions'] = num_questions
+    context['user'] = user
+
+    if user.get_profile().has_been_assigned and num_questions == 0:
+        context['display_interview'] = 1
+    else:
+        context['display_interview'] = 0
+
+    if request.method == 'POST':
+        context['form'] = form = FeedbackForm(request.POST)
+        if form.is_valid():
+            feedback = Feedback()
+            feedback.user = user
+            feedback.sentiment = form.cleaned_data['sentiment']
+            feedback.improvements = form.cleaned_data['improvements']
+            feedback.comments = form.cleaned_data['comments']
+            feedback.save()
+            return HttpResponseRedirect('/thanks')
+        return render_to_response('expertsrc/answer.html', context)
+
+    context['form'] = FeedbackForm()
+    return render_to_response('expertsrc/answer.html', context)
+
+
+@login_required
+def thanks_and_goodbye(request):
+    user = request.user
+    profile = user.get_profile()
+    profile.has_been_assigned = False
+    profile.save()
+    #TODO: set to true and test
+    disable_account = True
+    logout(request)
+    if disable_account:
+        user.is_active = False
+        user.save()
+    return render_to_response('expertsrc/thanks_and_goodbye.html')
 
 @login_required
 def implicit_overview(request):
@@ -130,14 +168,17 @@ def overview(request, username):
     expertise_form.fields["domain"].queryset = \
         Domain.objects.exclude(expertise__user__id__exact=user.get_profile().id)
     full_up = expertise_form.fields["domain"].queryset.count() == 0
+
     c = {
         'user':user,
         'profile':user.get_profile(),
+        'is_answerer': is_answerer,
         'allow_add_domain': is_answerer and not full_up,
         'profile_form':profile_form,
         'expertise_form':expertise_form,
         'overview':overview,
     }
+
     return render_to_response('expertsrc/userhq.html', c,
                               context_instance=RequestContext(request))
 
@@ -180,8 +221,6 @@ def user_batches(request):
         most_recent = batches[0]
     else:
         messages.error(request, 'You have not imported any batches from Data Tamer.')
-    tamer_url = settings.TAMER_URL
-    tamer_db = settings.TAMER_DB
     c=locals()
     return render_to_response('expertsrc/user_batches.html', c, 
                               context_instance=RequestContext(request))
@@ -195,9 +234,10 @@ def batch_panel(request, batch_id):
     QuestionModel = batch.question_type.question_class.model_class()
     questions = QuestionModel.objects.filter(batch=batch)
 
-    c = locals()
+    profile = user.get_profile()
 
-    return render_to_response('expertsrc/batch_panel.html', c)
+    c = locals()
+    return render_to_response('expertsrc/batch_panel.html', c, context_instance=RequestContext(request))
 
 @login_required
 def check_for_new_batches(request):
@@ -206,7 +246,6 @@ def check_for_new_batches(request):
             most_recent = request.POST.get('most_recent', False)
             uid = request.POST.get('uid', False)
             owner = User.objects.get(pk=int(uid))
-
             if most_recent:
                 most_recent_dt = datetime.datetime.strptime(most_recent, "%Y-%m-%dT%H:%M:%S.%f")
                 batches = list(Batch.objects.filter(create_time__gt=most_recent_dt,owner=owner).order_by('create_time'))
@@ -215,49 +254,42 @@ def check_for_new_batches(request):
 
             if len(batches) == 0:
                 return HttpResponse('None') 
-
             c = locals()
-
             return render_to_response('expertsrc/batch_rows.html', c)
 
 @login_required
 def get_allocation_suggestions(request):
-    response = dict()
+    response = {} 
     if request.is_ajax():
         if request.method == 'POST':
-
             batch = get_object_or_404(Batch, pk=request.POST['batch_id'])
+            alg_type = request.POST.get('alg_type')
+            domain_id = request.POST.get('domain_id')
             question_ids = request.POST.getlist('question_ids[]')
             batch_size = len(question_ids)
+            allocs = [] 
 
-            sample_size = batch_size * 10
+            if alg_type == 'max_conf':
+                max_price = request.POST.get('price')
+                allocs = max_conf(domain_id, float(max_price), batch_size)
+            elif alg_type == 'min_price':
+                min_conf = request.POST.get('confidence')
+                allocs = min_price(domain_id, float(min_conf) / 100.0, batch_size)
+            else:
+                response['status'] = 'error'
+                response['msg'] = 'Unrecognized allocation selection algorithm.'
+                return dict_to_json_response(response)
 
-            allocs = get_allocations_by_domain(int(request.POST['domain_id']), 
-                                               sample_size=sample_size,
-                                               min_size=int(request.POST['min_size']),
-                                               max_size=int(request.POST['max_size']),
-                                               min_confidence=float(request.POST.get('confidence')),
-                                               max_price=float(request.POST.get('price')),)
             if len(allocs) < batch_size:
                 response['status'] = 'error'
                 response['msg'] = 'Could not allocate users for all questions.'
                 return dict_to_json_response(response)
 
-            # select indexes of suggested allocations
-            idxs = random.sample(range(len(allocs)), batch_size)
-            idx_set = set(idxs)
-            response['unused'] = list()
             response['status'] = 'OK'
+            response['unused'] = []
 
-            for x in range(len(allocs)):
-                alloc = allocs[x].get_dict()
-                if x in idx_set:
-                    # distribute them in no particular order...
-                    qid = random.choice(question_ids)
-                    question_ids.remove(qid)
-                    response[qid] = alloc
-                else:
-                    response['unused'].append(alloc)
+            for idx in xrange(batch_size):
+                response[question_ids[idx]] = allocs[idx].get_dict()
 
             return dict_to_json_response(response)
     else:
@@ -306,10 +338,15 @@ def commit_allocations(request):
                     assn.complete = False
                     assn.save()
 
+                    # remove after initial demo
+                    profile = assn.answerer.get_profile()
+                    profile.has_been_assigned = True
+                    profile.save()
+
             batch.is_allocated = True
             batch.save()
             response['status'] = 'success'
-            response['msg'] = 'Committed successfully.'
+            response['msg'] = 'Committed successfully. Redirecting...'
             return dict_to_json_response(response)
 
 def update_prices(request):
@@ -318,18 +355,28 @@ def update_prices(request):
 # TODO:
 # deep-six import_schema_map_questions and import_schema_map_answers
 def import_schema_map_questions(request):
-    return HttpResponseRedirect('/batches/')
+    return HttpResponseRedirect('/batches/?check')
 
 def import_schema_map_answers(request):
     return HttpResponseRedirect('/answer/')
 ###
 
+def about(request):
+    user = request.user
+    c = locals()
+    return render_to_response('expertsrc/about.html', c)
+
+def redirect_to_tamer(request):
+    return HttpResponseRedirect("%s/tamer/%s" % (settings.TAMER_URL, settings.TAMER_DB,))
+
 def global_user_overview(request):
+    user = request.user
     overview = get_global_user_overview()
     c = locals()
     return render_to_response('expertsrc/user_overview.html' , c)
 
 def batch_overview(request, batch_id):
+    user = request.user
     batch = get_object_or_404(Batch, pk=batch_id)
     overview = list()
     for record in get_batch_overview(batch.id):
@@ -339,8 +386,6 @@ def batch_overview(request, batch_id):
         new_rec['progress'] = float(record['number_completed']) / record['number_allocated'] * 100
         new_rec['confidence'] = record['conf']
         overview.append(new_rec)
-    tamer_url = settings.TAMER_URL
-    tamer_db = settings.TAMER_DB
     c = locals()
     return render_to_response('expertsrc/batch_overview.html', c)
 

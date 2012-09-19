@@ -6,10 +6,12 @@ DBNAME=$1
 
 OUTFILE=init.out
 
-psql $DBNAME -f new_generate_allocations.sql 2> $OUTFILE
-psql $DBNAME -f generate_allocations.sql 2>> $OUTFILE
+psql $DBNAME -f confidence_scores.sql 2> $OUTFILE
+psql $DBNAME -f allocation_generation.sql 2>> $OUTFILE
 psql $DBNAME -f answerer_summary.sql 2>> $OUTFILE 
 psql $DBNAME -f batch_overview.sql 2>> $OUTFILE
 psql $DBNAME -f misc.sql 2>> $OUTFILE
+psql $DBNAME -f locks.sql 2>> $OUTFILE 
+
 
 cat $OUTFILE

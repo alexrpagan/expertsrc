@@ -1,46 +1,29 @@
-format_values = function(values){
-    $("#amount-min").val(values[0]);
-    $("#amount-max").val(values[1]);
-};
 
 $(function() {
-    $("#alloc-size-slider").slider({
-	range: true,
-	min: 1,
-	max: 11,
-	values: [1, 5],
-	step: 2,
-	slide: function( event, ui ) {
-	    format_values(ui.values);
-	}
-    });
-    format_values($("#alloc-size-slider").slider("values"));
-});
-
-$(function() {
+    var balance = $('#bank_balance').val()
     $("#price-slider").slider({
 	range: "min",
-	value: 20,
+	value: balance/2,
 	min: 0,
-	max: 100,
+	max: balance,
 	slide: function( event, ui ) {
-	    $("#price").val(ui.value)
+	    $("#price").html(ui.value)
 	}
     });
-    $("#price").val($("#price-slider").slider("value"))
+    $("#price").html($("#price-slider").slider("value"))
 });
 
 $(function() {
     $("#confidence-slider").slider({
 	range: "min",
-	value: 80,
+	value: 90,
 	min: 50,
 	max: 100,
 	slide: function( event, ui ) {
-	    $("#confidence").val(ui.value)
+	    $("#confidence").html(ui.value)
 	}
     });
-    $("#confidence").val($("#confidence-slider").slider("value"))
+    $("#confidence").html($("#confidence-slider").slider("value"))
 });
 
 get_modal_html = function (data) {
@@ -83,25 +66,26 @@ truncate_float = function(num, places){
 
 $(function() {
     $("#get-allocs").click(function(){
+
 	// get the stuff that we need for the ajax call
+	var alg_type = $('input:radio[name=alg-type]:checked').val();
 	var batch_id = $('#batch_id').val();
 	var question_ids = $('input[name=question_id]').map(function(){return $(this).val();}).get();
 	var domain_id = $('input[name=domain_id]').val();
-	var confidence = $('#confidence').val();
-	var price = $('#price').val();
-	var min_size = $('#amount-min').val();
-	var max_size = $('#amount-max').val();
+	var confidence = $('#confidence').html();
+	var price = $('#price').html();
 	var spinner = new Spinner(opts).spin();
-	$("#get-allocs").text("Loading suggestions...");
+
+	$("#get-allocs").text("Loading...");
 	$('#spinner').html(spinner.el);
+
 	$.post(
 	    '/batch/get_allocation_suggestions/',
 	    {
+		alg_type : alg_type,
 		batch_id : batch_id,
 		question_ids : question_ids,
 		domain_id : domain_id,
-		min_size : min_size,
-		max_size : max_size,
 		price : price,
 		confidence : confidence
 	    },
@@ -109,6 +93,7 @@ $(function() {
 		spinner.stop();
 		$("#get-allocs").text("Get New Suggestions");
 		if (data.status == 'OK'){
+
 		    var cum_price = 0;
 		    var cum_conf = 0;
 		    var cum_workers = 0;
@@ -158,8 +143,10 @@ $(function() {
 	var allocs = $('input[name=allocation_selection]').map(function(){return $(this).val();}).get();
 	var batch_id = $('#batch_id').val();
 	var price = $('#cumulative-price').html();
+
 	$('#status').attr('class', 'alert alert-info');
 	$('#status').show('slow').html('Committing allocations...');
+
 	$.post(
 	    '/batch/commit_allocations/',
 	    {
@@ -173,6 +160,7 @@ $(function() {
 		$('#alloc-stats').hide();
 		$('#questions').hide();
 		if (data.status == 'success'){
+		    $('.options').hide();
 		    $('#status').attr('class', 'alert alert-success');
 		    $('#commit-allocs').attr('disabled', 'disabled');
 		    setTimeout(function() {
@@ -192,3 +180,39 @@ $(function() {
     });
 });
 
+select_minprice = function() {
+    $('#constraint').html("confidence");
+    $('#min_price').attr('checked', 'checked');
+    $("#conf-slider-row").show();
+    $("#price-slider-row").hide();
+};
+
+select_maxconf = function() {
+    $("#constraint").html("price");
+    $('#max_conf').attr('checked', 'checked');
+    $("#price-slider-row").show();
+    $("#conf-slider-row").hide();
+};
+
+toggle_selections = function(obj) {
+    selected = obj.attr('data-toggle')
+    if(selected){
+	obj.attr('data-toggle', '');
+	obj.html('See suggestions <i class="icon-search icon-plus"></i>');
+	$('#details-table').hide();
+    } else {
+	obj.attr('data-toggle', 'toggle');
+	obj.html('Hide suggestions <i class="icon-search icon-minus"></i>');
+	$('#details-table').show('slow');
+    }
+}
+
+$(function() {
+    $('#maxconf-container').click(select_maxconf);
+    $('#minprice-container').click(select_minprice);
+    $('#show-suggs').click( function () {
+	toggle_selections($(this));
+    });
+});
+
+select_maxconf();

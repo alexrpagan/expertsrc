@@ -10,10 +10,11 @@
 
 <div>
   <h1>Expert Worker Overview</h1>
+  <br />
+  <p class="lead">Stats about all Expertsrc users.</p>
 </div>
 
 <section id="overview">
-  <br/><br/>
   {% if overview %}
   <table class="table">
     <thead>
@@ -41,3 +42,10 @@
 </section>
 
 {% endblock content %} 
+
+
+{% block jquery %}
+<script type="text/javascript">
+  $("#nav-overview").addClass("active");
+</script>
+{% endblock jquery %}

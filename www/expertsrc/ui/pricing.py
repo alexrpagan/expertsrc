@@ -7,27 +7,28 @@ from django.db import connection, transaction
 class Op:
     LT = -1
     GT = 1
-    
-    direction = 0
+    op_code = 0
 
-    def __init__(self, direction):
-        if direction == '<':
-            self.direction = self.LT
-        elif direction == '>':
-            self.direction = self.GT
+    def is_lt(self):
+        return self.op_code == self.LT
+
+    def is_gt(self):
+        return self.op_code == self.GT
+
+    def __init__(self, op_str):
+        if op_str == '<':
+            self.op_code = self.LT
+        elif op_str == '>':
+            self.op_code = self.GT
 
     def __str__(self):
-        if self.direction == self.LT:
+        if self.is_lt():
             return '<'
-        elif self.direction == self.GT:
+        else:
             return '>'
 
     def flip(self):
-        if self.direction == self.LT:
-            self.direction = self.GT
-        elif self.direction == self.GT:
-            self.direction = self.LT
-
+        self.op_code *= -1
 
 class SymbolicUtils:
     @classmethod
@@ -45,14 +46,11 @@ class SymbolicUtils:
         Returns that symbol's coefficient and the symbol itself as a pair.
         If there are no symbols in the expression (i.e. it is a number), 
         then return None
-
-        Gotcha:
-
-        If the ineqn is a Mul, it needs to be just a symbol * factor
         """
         if isinstance(ineqn.expand(), sympy.numbers.Number):
             return None
         if isinstance(ineqn.expand(), sympy.mul.Mul):
+            assert len(ineqn.args) == 2
             return ineqn.as_two_terms()
 
         assert isinstance(ineqn, sympy.add.Add)
@@ -71,6 +69,11 @@ class SymbolicUtils:
 
     @classmethod
     def extract_mvp(cls, ineqn):
+        """
+        rewrite an equation of the form a*l1 + b*l2 + c*l3 > 0
+        to be (a*l1 + b*l2)/-c < l3
+        
+        """
         mvp_term = cls.get_mvp_term(ineqn)
         new_term = None
         ret_term = None
@@ -85,15 +88,12 @@ class SymbolicUtils:
             lhs -= coef * symbol
             rhs -= coef * symbol
             
-            # divide both sides by coef
-            lhs /= coef
-            rhs /= coef
-            if coef < 0:
+            # divide both sides by -coef
+            lhs /= -coef
+            rhs /= -coef
+            if -coef < 0:
                 op.flip()
 
-            lhs *= -1
-            rhs *= -1
-            op.flip()
             return (lhs.as_expr(), str(op), rhs.as_expr(),)
         return None
 
@@ -102,6 +102,17 @@ class StaticPricer:
     """
     def __init__(self, domain_id):
         self.domain_id = domain_id
+
+    @transaction.commit_on_success
+    def get_level_number_extrema(self):
+        cmd = """ SELECT MIN(level_number) as min, MAX(level_number) as max
+                  FROM ui_level
+                  WHERE domain_id = %s """
+        cursor = connection.cursor()
+        cursor.execute(cmd, (self.domain_id,))
+        res = dictfetchall(cursor)
+        assert len(res) == 1
+        return res[0]
 
     @transaction.commit_on_success
     def calculate_level_histograms(self):
@@ -176,19 +187,32 @@ class StaticPricer:
         
     def calculate_prices(self):
         ineqns = self.create_pricing_ineqns()
+        
+        # reformat histogram of inequations into list of tuples
+        # to make them sortable.
         ineqns_refmt = []
         for key in ineqns:
             ineqns_refmt.append((ineqns[key], key,))
-
         ineqns_refmt.sort(key=lambda x: x[0], reverse=True)
 
-        parts = {}
-        
         # partition inequations
+        parts = {}
         for item in ineqns_refmt:
             freq, ineqn = item
             items = parts.setdefault(ineqn[0], [])
             items.append(item)
+
+        # check to see that all symbols have at least one
+        # constraint. if not, inject a trivial constraint.
+        extrema = self.get_level_number_extrema()
+        for l in range(extrema['min'], 1 + extrema['max']):
+            sym = SymbolicUtils.encode_tag(l)
+            if sym not in parts:
+                if l == 0:
+                    rhs = 0
+                else:
+                    rhs = SymbolicUtils.encode_tag(l - 1)
+                parts[sym] = [(0, (sym, '>', rhs))]
 
         symbols = parts.keys()
         symbols.sort(key=lambda x: SymbolicUtils.decode_tag(x))
