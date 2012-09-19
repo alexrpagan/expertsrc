@@ -42,7 +42,6 @@ class QueueWatcher(threading.Thread):
                 print 'Caught keyboard interrupt. Bailing out.'
             except Exception, e:
                 print 'Cause exception in queue: %s' % self.queue_name
-                raise e
 
 class Command(NoArgsCommand):
     def handle_noargs(self, **options):
