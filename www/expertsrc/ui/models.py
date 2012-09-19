@@ -264,7 +264,7 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
             smq = SchemaMapQuestion()
             smq.batch = batch_rec
             smq.asker = batch_rec.owner 
-            smq.domain = Domain.objects.get(short_name='data-tamer')
+            smq.domain = Domain.objects.get(short_name='pharon-assay')
             smq.question_type = QuestionType.objects.get(short_name='schemamap')
             smq.local_field_id = question.local_field_id
             smq.local_field_name = question.local_field_name
@@ -330,9 +330,9 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             answerer = User.objects.get(pk=answer.answerer_id)
             sma = SchemaMapAnswer()
             question = sma.question = SchemaMapQuestion.objects.get(local_field_id=answer.local_field_id)
-            if not reviewer:
-                reviewer_dict = select_reviewer(question.domain)
-                reviewer = User.objects.get(pk=reviewer_dict['user_id'])
+#            if not reviewer:
+#                reviewer_dict = select_reviewer(question.domain)
+#                reviewer = User.objects.get(pk=reviewer_dict['user_id'])
             sma.answerer = answerer
             sma.confidence = answer.confidence
             sma.authority = answer.authority
@@ -343,7 +343,7 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             sma.local_field_id = answer.local_field_id
             sma.is_match = answer.is_match
             sma.save()
-            sma.register_for_review(reviewer=reviewer)
+ #           sma.register_for_review(reviewer=reviewer)
             assn = Assignment.objects.get(answerer=answerer, question=sma.question)
             assn.completed = True
             assn.save()
