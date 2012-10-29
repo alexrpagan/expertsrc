@@ -1,6 +1,7 @@
+# TODO: get rid of import *
 import sympy
 from sympy import *
-from ui.utils import *
+import ui.utils as utils
 from django.db import connection, transaction
 
 
@@ -53,7 +54,6 @@ class SymbolicUtils:
         if isinstance(ineqn.expand(), sympy.mul.Mul):
             assert len(ineqn.args) == 2
             return ineqn.as_two_terms()
-        assert isinstance(ineqn, sympy.add.Add)
         mvp_tag = -1
         mvp_sym = None
         for term in ineqn.as_ordered_terms():
@@ -91,8 +91,6 @@ class SymbolicUtils:
 
 
 class StaticPricer:
-    """
-    """
     def __init__(self, domain_id):
         self.domain_id = domain_id
 
@@ -103,52 +101,19 @@ class StaticPricer:
                   WHERE domain_id = %s """
         cursor = connection.cursor()
         cursor.execute(cmd, (self.domain_id,))
-        res = dictfetchall(cursor)
+        res = utils.dictfetchall(cursor)
         assert len(res) == 1
         return res[0]
 
     @transaction.commit_on_success
-    def calculate_level_histograms(self):
-        """
-        Iterate through alloction records, grouping by allocation id
-        sorting users into bucket based on level number
-        """
-        histograms = []
-        cmd = """ SELECT a.domain_id, a.allocation_id, a.user_level,
-                         a.user_id, a.accuracy, c.confidence_score
-                  FROM allocations a, alloc_conf_scores c
-                  WHERE a.domain_id = %s AND a.domain_id = c.domain_id
-                    AND a.allocation_id = c.allocation_id
-                  ORDER BY c.confidence_score DESC, a.domain_id, a.allocation_id"""
+    def get_histograms(self):
+        cmd = """ SELECT dist, conf
+                  FROM alloc_stems
+                  WHERE domain = %s
+                  ORDER BY conf DESC """
         cursor = connection.cursor()
         cursor.execute(cmd, (self.domain_id,))
-        curr_id = -1
-        histogram = {}
-        for row in dictfetchall(cursor):
-            alloc_id = row['allocation_id']
-            if curr_id != alloc_id:
-                if 'alloc_id' in histogram:
-                    histograms.append(dict(histogram))
-                histogram = {'alloc_id': alloc_id, 'conf_score': row['confidence_score']}
-                curr_id = alloc_id
-            users = histogram.setdefault(row['user_level'], [])
-            # user_info = {}
-            # for key in ['user_id', 'accuracy']:
-            #     user_info[key] = row[key]
-            # users.append(user_info)
-            users.append(1)
-        return histograms
-
-    @staticmethod
-    def get_coefs(histo):
-        """
-        Pluck out the coefficients of the pricing function.
-        """
-        coefs = {}
-        for key in histo:
-            if isinstance(histo[key], list):
-                coefs[key] = len(histo[key])
-        return coefs
+        return utils.dictfetchall(cursor)
 
     def create_pricing_ineqns(self):
         """
@@ -158,17 +123,17 @@ class StaticPricer:
         Rewrite in terms of highest valued variable
         Hash equation, update histogram
         """
-        histograms = self.calculate_level_histograms()
+        histograms = self.get_histograms()
         ineqns = {}
         penultimate = len(histograms) - 1
         for x in range(penultimate):
             formulas = [0, 0]
             for y in range(2):
                 histo = histograms[x + y]
-                coefs = self.get_coefs(histo)
-                for key in coefs:
-                    curr_symbol = SymbolicUtils.encode_tag(key)
-                    formulas[y] += int(coefs[key]) * curr_symbol
+                for z in range(len(histo['dist'])):
+                    curr_symbol = SymbolicUtils.encode_tag(z + 1)
+                    if histo['dist'][z] > 0:
+                        formulas[y] += histo['dist'][z] * curr_symbol
             new_formula = formulas[0] - formulas[1]
             ineqn = SymbolicUtils.extract_mvp(new_formula)
             if ineqn is not None:

@@ -1,9 +1,7 @@
 from django.db import models, connections, transaction
-from django.db.models.signals import post_save
 from django.db.backends.signals import connection_created
 from django.forms import ModelForm
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
 from django.contrib.auth.models import User
 from django.conf import settings
 
@@ -14,6 +12,7 @@ from ui.utils import *
 #### signal recievers
 ####
 
+
 def set_search_path(sender, **kwargs):
     cursor = connections["default"].cursor()
     cursor.execute("SET search_path TO public")
@@ -23,8 +22,10 @@ connection_created.connect(set_search_path)
 # maximum length given to all character string fields.
 MAX_CHAR_LENGTH = 32
 
+
 class InsufficientFundsException(Exception):
     pass
+
 
 class UserFunctions:
     def get_next_job(self):
@@ -69,6 +70,7 @@ class UserFunctions:
 
 User.__bases__ += (UserFunctions,)
 
+
 class Feedback(models.Model):
     SENTIMENTS = (
         (1, 'Positive'),
@@ -81,18 +83,22 @@ class Feedback(models.Model):
     comments = models.TextField(blank=True)
     create_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+
 class FeedbackForm(ModelForm):
     class Meta:
         model = Feedback
         exclude = ('user',)
-    
+
+
 class Domain(models.Model):
     # no spaces here.
     short_name = models.CharField(max_length=MAX_CHAR_LENGTH)
     long_name = models.CharField(max_length=MAX_CHAR_LENGTH)
     description = models.TextField(blank=True)
+
     def __unicode__(self):
         return self.short_name
+
 
 class UserProfile(models.Model):
     USER_CLASS_CHOICES = (
@@ -105,20 +111,24 @@ class UserProfile(models.Model):
     domains = models.ManyToManyField(Domain, through='Expertise')
     has_been_assigned = models.BooleanField(default=False)
 
+
 class UserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         exclude = ('domains', 'user', 'bank_balance',)
 
+
 class TempAccuracy(models.Model):
     user = models.ForeignKey(User)
     accuracy = models.FloatField(default=.5)
+
 
 class Level(models.Model):
     domain = models.ForeignKey(Domain)
     level_number = models.IntegerField()
     confidence_upper_bound = models.FloatField()
     price = models.FloatField(default=0)
+
 
 # relation designating areas in which the user ostensibly has
 # expertise.  set by the user.
@@ -127,21 +137,24 @@ class Expertise(models.Model):
     domain = models.ForeignKey(Domain)
     question_quota = models.IntegerField(default=0)
 
+
 class ExpertiseForm(ModelForm):
     class Meta:
         model = Expertise
         exclude = ('user',)
-        
+
 ####
 #### Models for registering applications with expertsrc
 ####
-    
+
 from django.core.exceptions import ValidationError
+
 
 def validate_db_alias(value):
     from django.db import connections
     if value not in connections:
         raise ValidationError(u'Database %s has not been configured.' % value)
+
 
 class Application(models.Model):
     name = models.CharField(max_length=MAX_CHAR_LENGTH)
@@ -159,6 +172,7 @@ class Application(models.Model):
 ### Base classes for question types
 ###
 
+
 class QuestionType(models.Model):
     long_name = models.CharField(max_length=MAX_CHAR_LENGTH)
     short_name = models.CharField(max_length=MAX_CHAR_LENGTH)
@@ -168,6 +182,7 @@ class QuestionType(models.Model):
     answer_class = models.ForeignKey(ContentType, related_name="+")
     review_class = models.ForeignKey(ContentType, related_name="+")
 
+
 # TODO: change name to question batch
 class Batch(models.Model):
     owner = models.ForeignKey(User)
@@ -176,6 +191,7 @@ class Batch(models.Model):
     is_allocated = models.BooleanField(default=False)
     question_type = models.ForeignKey(QuestionType)
     budget = models.FloatField(default=0)
+
 
 class BaseQuestion(models.Model):
     asker = models.ForeignKey(User)
@@ -194,15 +210,16 @@ class BaseQuestion(models.Model):
         Compute the confidence for an allocation.
 
         Allows the implementer to pass along needed data.
-        
+
         TODO: Create an alternate implementation that allows data to be
         fetched from within the method (pass along plpy object?)
         """
         pass
-    
+
 
 class BaseChoice(models.Model):
     question = models.ForeignKey(BaseQuestion)
+
 
 class BaseAnswer(models.Model):
     question = models.ForeignKey(BaseQuestion)
@@ -210,6 +227,7 @@ class BaseAnswer(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
     confidence = models.FloatField()
     authority = models.FloatField()
+
 
 class BaseReview(models.Model):
     reviewer = models.ForeignKey(User)
@@ -219,10 +237,11 @@ class BaseReview(models.Model):
     confidence = models.FloatField()
     authority = models.FloatField()
 
+
 class BatchSupport:
     @staticmethod
     def import_batch(batch_obj):
-        """ 
+        """
         Create DB records for one batch of questions imported from queue.
         """
         raise NotImplementedError
@@ -236,6 +255,7 @@ class Assignment(models.Model):
     question = models.ForeignKey(BaseQuestion)
     agreed_price = models.FloatField(default=0)
 
+
 class ReviewAssignment(models.Model):
     reviewer = models.ForeignKey(User)
     completed = models.BooleanField()
@@ -244,11 +264,12 @@ class ReviewAssignment(models.Model):
     answer = models.ForeignKey(BaseAnswer)
     agreed_price = models.FloatField(default=0)
 
-    
+
 class SchemaMapQuestion(BaseQuestion, BatchSupport):
-    local_field_id = models.PositiveIntegerField(unique=True) 
+    local_field_id = models.PositiveIntegerField(unique=True)
     local_field_name = models.CharField(max_length=128)
     batch = models.ForeignKey(Batch)
+
     def __unicode__():
         return local_field_name
 
@@ -263,8 +284,8 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
         for question in batch_obj.question:
             smq = SchemaMapQuestion()
             smq.batch = batch_rec
-            smq.asker = batch_rec.owner 
-            smq.domain = Domain.objects.get(short_name='pharon-assay')
+            smq.asker = batch_rec.owner
+            smq.domain = Domain.objects.get(short_name='data-tamer')
             smq.question_type = QuestionType.objects.get(short_name='schemamap')
             smq.local_field_id = question.local_field_id
             smq.local_field_name = question.local_field_name
@@ -293,12 +314,13 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
     @staticmethod
     def get_confidence_score(db_data):
         pass
-    
+
 
 class SchemaMapChoice(BaseChoice):
     global_attribute_id = models.PositiveIntegerField()
-    global_attribute_name = models.CharField(max_length=128) 
+    global_attribute_name = models.CharField(max_length=128)
     confidence_score = models.FloatField(default=0)
+
 
 class SchemaMapAnswer(BaseAnswer, BatchSupport):
     local_field_id = models.PositiveIntegerField(default=0)
@@ -337,8 +359,8 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             sma.confidence = answer.confidence
             sma.authority = answer.authority
             sma.global_attribute_id = answer.global_attribute_id
-            fid_answer_cnt.setdefault(answer.local_field_id, 
-                                      SchemaMapAnswer.objects.filter(answerer=answerer, 
+            fid_answer_cnt.setdefault(answer.local_field_id,
+                                      SchemaMapAnswer.objects.filter(answerer=answerer,
                                                                      local_field_id=answer.local_field_id).count())
             sma.local_field_id = answer.local_field_id
             sma.is_match = answer.is_match
@@ -351,6 +373,7 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             if fid_answer_cnt[answer.local_field_id] == 0:
                 answerer.get_paid(question)
                 fid_answer_cnt[answer.local_field_id] += 1
+
 
 class SchemaMapReview(BaseReview, BatchSupport):
     @staticmethod
@@ -369,15 +392,18 @@ class SchemaMapReview(BaseReview, BatchSupport):
             assgn.completed = True
             assgn.save()
 
+
 class NRTrainingQuestion(BaseQuestion):
     pass
+
 
 class NRTrainingChoice(BaseChoice):
     pass
 
+
 class NRTrainingAnswer(BaseAnswer):
     pass
 
+
 class NRTrainingReview(BaseReview):
     pass
-    

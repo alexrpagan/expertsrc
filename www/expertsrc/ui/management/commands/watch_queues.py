@@ -3,10 +3,12 @@ from ui.models import *
 from ui.dbaccess import *
 from protocol import expertsrc_pb2
 from protocol.batchqueue import BatchQueue
-from django.conf import settings
-import redis
 import django
 import threading
+
+
+SWALLOW_RUNTIME_EXCEPTIONS=False
+
 
 class QueueWatcher(threading.Thread):
     queue_name = None
@@ -14,7 +16,7 @@ class QueueWatcher(threading.Thread):
     logger = None
     batch_obj = None
     batch_queue = None
-    
+
     def __init__(self, queue_name, types, batch_obj):
         threading.Thread.__init__(self)
         self.queue_name = queue_name
@@ -42,29 +44,27 @@ class QueueWatcher(threading.Thread):
                 print 'Caught keyboard interrupt. Bailing out.'
             except Exception, e:
                 print 'Cause exception in queue: %s' % self.queue_name
+		if not SWALLOW_RUNTIME_EXCEPTION:
+	            raise e
+
 
 class Command(NoArgsCommand):
     def handle_noargs(self, **options):
         # mappings between type codes in protocol buffer and django models
-
         question_types = {}
         question_base = expertsrc_pb2.QuestionBatch
         question_types[question_base.SCHEMAMAP] = SchemaMapQuestion
-
         answer_types = {}
         answer_base = expertsrc_pb2.AnswerBatch
         answer_types[answer_base.SCHEMAMAP] = SchemaMapAnswer
-
         review_types = {}
         review_base = expertsrc_pb2.ReviewBatch
         review_types[review_base.SCHEMAMAP] = SchemaMapReview
-        
         watcher_pool = []
-
         watcher_pool.append(QueueWatcher(queue_name='question',
                                          types=question_types,
                                          batch_obj=expertsrc_pb2.QuestionBatch()))
-        
+
         watcher_pool.append(QueueWatcher(queue_name='answer',
                                          types=answer_types,
                                          batch_obj=expertsrc_pb2.AnswerBatch()))
@@ -72,6 +72,5 @@ class Command(NoArgsCommand):
         watcher_pool.append(QueueWatcher(queue_name='review',
                                          types=review_types,
                                          batch_obj=expertsrc_pb2.ReviewBatch()))
-
         for watch in watcher_pool:
             watch.start()
