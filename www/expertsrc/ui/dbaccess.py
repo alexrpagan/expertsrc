@@ -1,23 +1,20 @@
+from collections import Counter
 from django.db import connection, transaction
-from itertools import izip
-
-import ui
-from ui.utils import *
-from ui.pricing import *
-from ui.models import *
-
-import random
-import logging
-import itertools
-import math
+import ui.utils as utils
+import ui.pricing.staticprice as sp
+import ui.pricing.dynprice as dp
+import ui.workerstats.allocations as alloc 
+import pulp
+import decimal
 
 @transaction.commit_on_success
 def get_answerer_domain_overview(user):
     cursor = connection.cursor()
-    cmd = """ SELECT o.*, o.num_answered + o.num_pending as total_answered 
+    cmd = """ SELECT o.*, o.num_answered + o.num_pending as total_answered
               FROM answerer_overview as o WHERE user_id = %s """
     cursor.execute(cmd, [user.id])
-    return dictfetchall(cursor)
+    return utils.dictfetchall(cursor)
+
 
 @transaction.commit_on_success
 def get_overview_record(user, domain):
@@ -25,251 +22,200 @@ def get_overview_record(user, domain):
     cmd = """ SELECT user_level, price FROM answerer_overview
               WHERE user_id = %s and domain_id = %s """
     cursor.execute(cmd, [user.id, domain.id])
-    res = dictfetchall(cursor)
+    res = utils.dictfetchall(cursor)
     return res[0]
+
 
 @transaction.commit_on_success
 def get_global_user_overview():
     cursor = connection.cursor()
-    cmd = """ SELECT username, short_name, question_quota, accuracy, user_level, num_pending
+    cmd = """ SELECT username, short_name, question_quota,
+                     accuracy, user_level, num_pending
               FROM answerer_overview as o
               ORDER BY o.accuracy DESC, o.short_name """
     cursor.execute(cmd)
-    res = dictfetchall(cursor)
+    res = utils.dictfetchall(cursor)
     return res
 
+
 @transaction.commit_on_success
+# TODO: Replace this with a generic view
 def get_batch_overview(batch_id):
     cursor = connection.cursor()
-    cmd = """ SELECT local_field_name, number_allocated, number_completed, poisson_binomial_conf as conf
+    cmd = """ SELECT local_field_name, number_allocated,
+                     number_completed, poisson_binomial_conf as conf
               FROM batch_overview as o
               WHERE id = %s"""
     cursor.execute(cmd, (batch_id,))
-    return dictfetchall(cursor)
+    return utils.dictfetchall(cursor)
+
+
+@transaction.commit_on_success
+def get_availability_histo(domain_id):
+    cursor = connection.cursor()
+    cmd = """ SELECT user_level as level,
+              SUM(num_to_answer - num_pending) as avail
+              FROM answerer_overview
+              WHERE domain_id = %s
+              GROUP BY user_level
+              ORDER BY user_level ASC """
+    cursor.execute(cmd, (domain_id,))
+    histo_raw = utils.dictfetchall(cursor)
+    histo = Counter()
+    for row in histo_raw:
+        histo[row['level']] = row['avail']
+    return histo
+
+
+@transaction.commit_on_success
+def get_level_dist(domain):
+    dist = {}
+    cursor = connection.cursor()
+    cmd = """ SELECT user_level, count(*)
+              FROM answerer_overview
+              WHERE domain_id = %s
+              GROUP BY user_level; """
+    cursor.execute(cmd, (domain,))
+    for row in cursor.fetchall():
+        dist[row[0]] = row[1]
+    return dist
+
+
+@transaction.commit_on_success
+def get_level_count(domain):
+    cursor = connection.cursor()
+    cmd = """ SELECT count(*)
+              FROM ui_level
+              WHERE domain_id = %s"""
+    cursor.execute(cmd, (domain,))
+    return cursor.fetchone()[0]
+
+
+@transaction.commit_on_success
+def get_user_list(domain):
+    cursor = connection.cursor()
+    cmd = """ SELECT user_id, user_level, price,
+                     num_to_answer - num_pending as avail
+              FROM answerer_overview
+              WHERE domain_id = %s
+              ORDER BY user_level DESC, avail DESC """
+    cursor.execute(cmd, (domain,))
+    user_list = {}
+    for row in utils.dictfetchall(cursor):
+        l = user_list.setdefault(row['user_level'], [])
+        l.append(row)
+    return user_list
+
+
+@transaction.commit_on_success
+def get_candidates(domain, criterion, method, limit=100):
+    cursor = connection.cursor()
+    histo = get_level_dist(domain)
+    avail_arry = [0] * get_level_count(domain)
+    for key in sorted(histo.keys()):
+        avail_arry[key - 1] = histo[key]
+    if method == 'min_price':
+        cmd = """ SELECT dist, conf, price
+                  FROM alloc_stems as a
+                  WHERE all_gte(%s, dist)
+                    AND conf >= %s
+                    AND domain = %s
+                  ORDER BY price ASC
+                  LIMIT %s; """
+    elif method == 'max_conf':
+        cmd = """ SELECT dist, conf, price
+                  FROM alloc_stems as a
+                  WHERE all_gte(%s, dist)
+                    AND price <= %s
+                    AND domain = %s
+                  ORDER BY conf DESC
+                  LIMIT %s; """
+    cursor.execute(cmd, (avail_arry, criterion, domain, limit,))
+    return utils.dictfetchall(cursor)
+
 
 def get_user_level(user, domain):
     return get_overview_record(user, domain)['user_level']
 
-def get_level_dist(question, members):
-    """ given a list of members, calculates a histogram of user levels"""
-    # TODO: reimplement me!
-    pass
-
-#TODO: change this so that a reviewer is only assigned to questions if 
-# he or she has not exceeded the weekly question quota
-@transaction.commit_on_success
-def select_reviewer(domain):
-    cursor = connection.cursor()
-    domain_id = domain.id
-    cmd = """SELECT * FROM answerer_overview
-           WHERE user_level = (SELECT MAX(u.level_number) 
-                               FROM ui_level u 
-                               WHERE domain_id = %s)
-             AND domain_id = %s
-           ORDER BY random()
-           LIMIT 1"""
-    cursor.execute(cmd, (domain_id, domain_id,))
-    return dictfetchall(cursor)[0]
-
-@transaction.commit_on_success
-def update_prices():
-    domains = ui.models.Domain.objects.all()
-    results = {}
-    for domain in domains:
-        p = StaticPricer(domain.id)
-        response = p.calculate_prices()
-        prices = response['prices']
-        for level in prices:
-            level_number = SymbolicUtils.decode_tag(level)
-            price = prices[level]
-            level = ui.models.Level.objects.get(domain=domain, level_number=level_number)
-            level.price = price
-            level.save()
-        results[domain.id] = response
-    return results
 
 def max_conf(domain_id, max_price, number_of_questions):
-    """
-    For all questions in a batch, select (in order) the allocation having the maximal confidence
-    which also has a price lower than the one specified.
-    """
-    get_frame = """ SELECT confidence_score, user_id_set, price
-                    FROM allocs_joined
-                    WHERE domain_id = %s
-                      AND price < %s
-                      AND NOT user_id_set && %s
-                    ORDER BY confidence_score DESC
-                    OFFSET %s
-                    LIMIT %s """
+    return create_assignments(domain_id, max_price, number_of_questions, 'max_conf')
 
-    avg_price = 0
-    if number_of_questions:
-        avg_price = float(max_price) / number_of_questions
 
-    frame_size = 2 * number_of_questions
-    return optimized_alloc_selector(domain_id, get_frame, avg_price, number_of_questions, frame_size)
-    
 def min_price(domain_id, min_conf, number_of_questions):
-    """
-    For all questions in a batch, select (in order) the allocation having the minimal price which
-    meets the given confidence requirements.
-    """
-    get_frame = """ SELECT confidence_score, user_id_set, price
-                    FROM allocs_joined
-                    WHERE domain_id = %s
-                      AND confidence_score >= %s
-                      AND NOT user_id_set && %s
-                    ORDER BY price ASC
-                    OFFSET %s
-                    LIMIT %s """
-    
-    frame_size = 2 * number_of_questions
-    return optimized_alloc_selector(domain_id, get_frame, min_conf, number_of_questions, frame_size)
+    return create_assignments(domain_id, min_conf, number_of_questions, 'min_price')
 
-@transaction.commit_on_success
-def get_avail_answerers(domain_id):
-    cursor = connection.cursor()
-    # TODO: change so that pending questions are subtracted from num_to_answer
 
-    cmd = """ SELECT o.user_id, o.num_to_answer - o.num_pending
-              FROM answerer_overview o
-              WHERE o.domain_id = %s """
-
-    vals = (domain_id,)
-    cursor.execute(cmd, vals)
-    num_available = {}
-    for rec in cursor.fetchall():
-        num_available[rec[0]] = rec[1] 
-    return num_available
-
-@transaction.commit_on_success
-def optimized_alloc_selector(domain_id, get_frame_cmd, constraint, number_of_questions, frame_size):
-    # TODO: acquire mutex here...     
-    num_available = get_avail_answerers(domain_id)
-    cursor = connection.cursor()
-    frame = []
-    alloc = []
-    tapped_out = set()
-    curr_question = 0
-    frame_position = 0
-    workers_left = 0
-
-    for key in num_available.keys():
-        if num_available[key] == 0:
-            tapped_out.add(key)
-        else:
-            workers_left += num_available[key]
-
-    offset = 0
-    while True: 
-        if curr_question == number_of_questions:
-            # we've answered all the questions
-            break
-
-        questions_left = number_of_questions - curr_question
-        if workers_left < questions_left:
-            # not enough workers to allocate the rest of the questions
-            return []
-
-        if frame_position == len(frame):
-            parms = (domain_id, constraint, list(tapped_out), offset, frame_size,)
-            cursor.execute(get_frame_cmd, parms)
-            frame = dictfetchall(cursor)
-            offset += frame_size
-            if len(frame) < frame_size and len(frame) < questions_left:
-                # not enough allocations to assign to the rest of the questions
-                return []
-            frame_position = 0
-
-        #try to allocate question
-        res_wrk_cpy = dict(num_available)
-        a = frame[frame_position]
-        has_the_goods = True
-
-        for user_id in a['user_id_set']:
-            if res_wrk_cpy[user_id] > 0:
-                res_wrk_cpy[user_id] -= 1
-                workers_left -= 1
-            else:
-                tapped_out.add(user_id)
-                has_the_goods = False
-                break
-
-        if has_the_goods:
-            new_alloc = Allocation()
-            new_alloc.confidence=a['confidence_score']
-            new_alloc.price=a['price']
-            new_alloc.members=a['user_id_set']
-            curr_question += 1
-            alloc.append(new_alloc)
-            num_available = dict(res_wrk_cpy)
-        else:
-            frame_position += 1
-
-    return alloc
+def get_optimal_allocations(domain, criterion, batch_size, method):
+    candidates = get_candidates(domain, criterion, method, limit=1000)
+    n = len(candidates)
+    ilp_vars = [pulp.LpVariable('x%s' % x, 0, batch_size, pulp.LpInteger) \
+                  for x in range(n)]
+    prices = [candidates[i]['price'] for i in range(n)]
+    confs = [candidates[i]['conf'] for i in range(n)]
+    dists = [candidates[i]['dist'] for i in range(n)]
+    histo = get_availability_histo(domain)
+    ilp = None
+    if method == 'min_price':
+        ilp = pulp.LpProblem('minprice', pulp.LpMinimize)
+        ilp += pulp.lpDot(prices, ilp_vars)
+        ilp += pulp.lpDot(confs, ilp_vars) >= decimal.Decimal(batch_size * criterion)
+    elif method == 'max_conf':
+        ilp = pulp.LpProblem('maxconf', pulp.LpMaximize)
+        ilp += pulp.lpDot(confs, ilp_vars)
+        ilp += pulp.lpDot(prices, ilp_vars) <= decimal.Decimal(criterion)
+    ilp += pulp.lpSum(ilp_vars) == batch_size
+    for level in histo:
+        ilp += pulp.lpDot([dists[i][level - 1] for i in range(n)], \
+                          ilp_vars) <= histo[level]
+    status = ilp.solve(pulp.GLPK(msg=0))
+    allocs = []
+    if pulp.LpStatus[status] == 'Optimal':
+        for i in range(n):
+            x = ilp_vars[i]
+            if pulp.value(x) > 0:
+                allocs.append((pulp.value(x), candidates[i]))
+    return allocs
 
 
 @transaction.commit_on_success
-def get_allocations_by_domain(domain_id, sample_size=10, min_size=1, max_size=7, min_confidence=50, max_price=1000):
-    cursor = connection.cursor()
-
-    cmd = """ SELECT c.confidence_score, array_accum(a.user_id) user_id_set, sum(l.price) price
-              FROM allocations AS a, alloc_conf_scores AS c, ui_level as l
-              WHERE a.domain_id = %s
-                AND c.confidence_score >= %s 
-                AND a.allocation_id = c.allocation_id
-                AND a.domain_id = c.domain_id
-                AND a.user_level = l.level_number
-              GROUP BY a.allocation_id, c.confidence_score
-              HAVING sum(l.price) < %s
-                 AND array_length(array_accum(a.user_id), 1) >= %s
-                 AND array_length(array_accum(a.user_id), 1) <= %s
-              ORDER BY random()
-              LIMIT %s """
-
-    min_confidence /= 100.0
-    assert min_confidence <= 1
-
-    vals = (domain_id, min_confidence, max_price, min_size, max_size, sample_size,)
-    cursor.execute(cmd, vals)
-    allocations = list()
-    for rec in cursor.fetchall():
-        a = Allocation()
-        a.confidence = rec[0]
-        a.members = rec[1]
-        a.price = rec[2]
-        allocations.append(a)
-    return allocations
-
-@transaction.commit_on_success
-def denormalize_allocs():
-    cmd = """ DROP TABLE IF EXISTS allocs_joined;
-              SELECT c.confidence_score, array_accum(a.user_id) user_id_set, sum(l.price) price, c.domain_id
-              INTO allocs_joined
-              FROM allocations AS a
-                  JOIN alloc_conf_scores as c
-                       ON ( a.allocation_id = c.allocation_id AND
-                            a.domain_id = c.domain_id )
-                  JOIN ui_level as l
-                       ON ( a.user_level = l.level_number )
-              GROUP BY a.allocation_id, c.confidence_score, c.domain_id;
-             CREATE INDEX allocs_joined_confidence_score_idx ON allocs_joined ( confidence_score DESC );
-             CREATE INDEX allocs_joined_price_idx ON allocs_joined ( price ASC );"""
-    cursor = connection.cursor()
-    cursor.execute(cmd)
-    connection.commit()
+def create_assignments(domain, criterion, batch_size, method):
+    assgns = []
+    allocs = get_optimal_allocations(domain, criterion, batch_size, method)
+    user_list = get_user_list(domain)
+    for opt in allocs:
+        repeat, alloc = opt
+        dist = alloc['dist']
+        for i in range(repeat):
+            alloc_rec = Allocation()
+            alloc_rec.confidence = alloc['conf']
+            alloc_rec.price = alloc['price']
+            alloc_membs = set()
+            for lidx in range(len(dist)):
+                for j in range(dist[lidx]):
+                    for user in user_list[lidx + 1]:
+                        if user['avail'] > 0 and \
+                           user['user_id'] not in alloc_membs:
+                            user['avail'] -= 1
+                            alloc_membs.add(user['user_id'])
+                            break
+            alloc_rec.members = list(alloc_membs)
+            assgns.append(alloc_rec)
+    return assgns
 
 
 class Allocation:
-    confidence = 0
-    price = 0
+    confidence = 0.
+    price = 0.
     members = None
+
     def __unicode__(self):
         return self.members
-    
+
     def get_dict(self):
         rep = dict()
-        rep['confidence'] = self.confidence
-        rep['price'] = self.price
+        rep['confidence'] = float(self.confidence)
+        rep['price'] = float(self.price)
         rep['members'] = list(self.members)
         return rep
+

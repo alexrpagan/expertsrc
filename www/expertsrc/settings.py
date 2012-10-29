@@ -5,7 +5,7 @@ TEMPLATE_DEBUG = DEBUG
 
 # change this to the absolute path to the dir where the checked-out expertsrc git repository lives
 # make sure that this ends with a trailing slash
-PROJECT_ROOT = '/home/apagan/'
+PROJECT_ROOT = '/home/apagan/test-env/apps/'
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
@@ -15,15 +15,15 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', 
-        'NAME': 'expertsrc',                      
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'expertsrc',
         'USER': 'apagan',
         'PASSWORD': '',
         'HOST': '',
         'PORT': '',
     },
     'goby': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', 
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'goby',
         'USER': 'apagan',
         'PASSWORD': '',

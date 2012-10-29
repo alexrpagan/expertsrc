@@ -40,7 +40,7 @@ def login_user(request):
                 login(request, user)
                 if 'next' in request.POST:
                     return HttpResponseRedirect(request.POST['next'])
-                else: 
+                else:
                     return redirect('ui.views.implicit_overview')
             else:
                 status = 'Your account has been disabled.'
@@ -93,7 +93,7 @@ def next_question(request):
     user = request.user
     jobs = user.get_jobs()
     if len(jobs) > 0:
-        QuestionModel = jobs[0].question.question_type.question_class.model_class() 
+        QuestionModel = jobs[0].question.question_type.question_class.model_class()
         redirect_url = QuestionModel.get_gui_url(user.id, jobs)
         return HttpResponseRedirect(redirect_url)
     else:
@@ -211,7 +211,7 @@ def user_batches(request):
     is_answerer = user.get_profile().user_class == 'ANS'
     if is_answerer:
         messages.error(request, 'You are not an asker!')
-        return render_to_response('expertsrc/user_batches.html', 
+        return render_to_response('expertsrc/user_batches.html',
                                   context_instance=RequestContext(request))
     batches = list(Batch.objects.filter(owner=user).order_by('-create_time'))
     check = False
@@ -222,7 +222,7 @@ def user_batches(request):
     else:
         messages.error(request, 'You have not imported any batches from Data Tamer.')
     c=locals()
-    return render_to_response('expertsrc/user_batches.html', c, 
+    return render_to_response('expertsrc/user_batches.html', c,
                               context_instance=RequestContext(request))
 
 @login_required
@@ -253,13 +253,13 @@ def check_for_new_batches(request):
                 batches = list(Batch.objects.filter(owner=owner).order_by('create_time'))
 
             if len(batches) == 0:
-                return HttpResponse('None') 
+                return HttpResponse('None')
             c = locals()
             return render_to_response('expertsrc/batch_rows.html', c)
 
 @login_required
 def get_allocation_suggestions(request):
-    response = {} 
+    response = {}
     if request.is_ajax():
         if request.method == 'POST':
             batch = get_object_or_404(Batch, pk=request.POST['batch_id'])
@@ -267,7 +267,7 @@ def get_allocation_suggestions(request):
             domain_id = request.POST.get('domain_id')
             question_ids = request.POST.getlist('question_ids[]')
             batch_size = len(question_ids)
-            allocs = [] 
+            allocs = []
 
             if alg_type == 'max_conf':
                 max_price = request.POST.get('price')
@@ -359,7 +359,7 @@ def import_schema_map_questions(request):
 
 def import_schema_map_answers(request):
     return HttpResponseRedirect('/answer/')
-###
+
 
 def about(request):
     user = request.user
