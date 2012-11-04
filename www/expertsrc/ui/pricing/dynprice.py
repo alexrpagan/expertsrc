@@ -51,7 +51,7 @@ def hist_to_ratio(histo):
         ratio[key] = float(ratio[key]) / normalizer
     return ratio
 
-
+"""
 def get_price_update(old={}, new={}):
     update = {}
     for domain in old.keys():
@@ -78,7 +78,29 @@ def get_price_update(old={}, new={}):
         renormalizer = sum(ratio.values())
         for l in ratio:
             ratio[l] /= float(renormalizer)
-            update[domain][l] = prices[l] * (1 + (ratio[l] - old_ratio[l]))
+#            update[domain][l] = prices[l] * (1 + (ratio[l] - old_ratio[l]))
+            update[domain][l] = sum(prices.values()) * ratio[l]
+    return update
+"""
+
+def get_price_update(old={}, new={}):
+    smoothing = .05
+    update = {}
+    for domain in old.keys():
+        update[domain] = {}
+        old_tmp, new_tmp = old[domain], new[domain]
+        used = old_tmp - new_tmp
+        demand_delta = {}
+        prices = \
+            dict((l.level_number, l.price,) \
+                for l in ui.models.Level.objects.filter(domain_id=domain))
+        for key in old_tmp.keys():
+            if used[key] > 0 and old_tmp[key] > 0:
+                demand_delta[key] = float(used[key]) / float(old_tmp[key])
+            else:
+                demand_delta[key] = 0.
+        for key in demand_delta:
+            update[domain][key] = prices[key] * (1. + (smoothing * demand_delta[key]))
     return update
 
 
