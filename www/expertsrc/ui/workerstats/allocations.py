@@ -93,14 +93,14 @@ def run_static_pricing(domain):
         level.save()
 
 
-def generate_and_insert():
+def generate_and_insert(max_size):
     print "dumping tables"
     cleanup()
     print "creating tables"
     create_tables()
     for domain in ui.models.Domain.objects.all():
         print "creating stems"
-        generate_stems(domain.id)
+        generate_stems(domain.id, max_size)
         print "running pricer"
         run_static_pricing(domain.id)
         print "updating prices"
