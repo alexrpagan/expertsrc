@@ -37,29 +37,29 @@ RETURN CASE WHEN num_answered = 0 THEN
 END;
 $$ LANGUAGE plpgsql;
 
--- DROP VIEW IF EXISTS answerer_overview_inner2;
--- CREATE VIEW answerer_overview_inner2 AS
--- SELECT o.*, get_ratio(o.num_reviewed, o.num_correct) AS accuracy, MAX(l.level_number) AS user_level
--- FROM answerer_overview_inner AS o LEFT JOIN ui_level AS l ON o.domain_id = l.domain_id
--- WHERE get_ratio(o.num_reviewed, o.num_correct) >= l.confidence_upper_bound 
--- GROUP BY o.username, o.domain_id, o.question_quota, o.short_name,
+--DROP VIEW IF EXISTS answerer_overview_inner2;
+--CREATE VIEW answerer_overview_inner2 AS
+--SELECT o.*, get_ratio(o.num_reviewed, o.num_correct) AS accuracy, MAX(l.level_number) AS user_level
+--FROM answerer_overview_inner AS o LEFT JOIN ui_level AS l ON o.domain_id = l.domain_id
+--WHERE get_ratio(o.num_reviewed, o.num_correct) >= l.confidence_upper_bound 
+--GROUP BY o.username, o.domain_id, o.question_quota, o.short_name,
 --       	 o.num_answered, o.num_correct, o.user_id, o.num_reviewed, o.num_to_answer
--- UNION
--- SELECT o.*, get_ratio(o.num_reviewed, o.num_correct) AS accuracy, l.level_number
--- FROM answerer_overview_inner AS o LEFT JOIN ui_level AS l ON o.domain_id = l.domain_id
--- WHERE get_ratio(o.num_reviewed, o.num_correct) < l.confidence_upper_bound AND l.level_number = (SELECT MIN(level_number) from ui_level where domain_id = o.domain_id)
--- GROUP BY o.username, o.domain_id, o.question_quota, o.short_name,
+--UNION
+--SELECT o.*, get_ratio(o.num_reviewed, o.num_correct) AS accuracy, l.level_number
+--FROM answerer_overview_inner AS o LEFT JOIN ui_level AS l ON o.domain_id = l.domain_id
+--WHERE get_ratio(o.num_reviewed, o.num_correct) < l.confidence_upper_bound AND l.level_number = (SELECT MIN(level_number) from ui_level where domain_id = o.domain_id)
+--GROUP BY o.username, o.domain_id, o.question_quota, o.short_name,
 --       	 o.num_answered, o.num_correct, o.user_id, o.num_reviewed, o.num_to_answer, l.level_number;
 
 DROP VIEW IF EXISTS answerer_overview_inner2;
 CREATE VIEW answerer_overview_inner2 AS
 SELECT o.*, acc.accuracy, MAX(l.level_number) AS user_level
 FROM answerer_overview_inner AS o LEFT JOIN ui_level AS l ON o.domain_id = l.domain_id,
-     ui_tempaccuracy as acc
+      ui_tempaccuracy as acc
 WHERE acc.accuracy >= l.confidence_upper_bound 
-  and acc.user_id = o.user_id 
+   and acc.user_id = o.user_id 
 GROUP BY o.username, o.domain_id, o.question_quota, o.short_name,
-       	 o.num_answered, o.num_correct, o.user_id, o.num_reviewed, o.num_to_answer, acc.accuracy
+      	 o.num_answered, o.num_correct, o.user_id, o.num_reviewed, o.num_to_answer, acc.accuracy
 UNION
 SELECT o.*, acc.accuracy, l.level_number
 FROM answerer_overview_inner AS o LEFT JOIN ui_level AS l ON o.domain_id = l.domain_id,

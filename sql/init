@@ -4,6 +4,6 @@
 DBNAME=$1
 
 psql $DBNAME -f answerer_summary.sql
-psql $DBNAME -f batch_overview.sql
-psql $DBNAME -f misc.sql
 psql $DBNAME -f update_stems.sql
+psql $DBNAME -f misc.sql
+psql $DBNAME -f batch_overview.sql

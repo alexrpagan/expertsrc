@@ -1,3 +1,5 @@
+SET search_path TO public;
+
 DROP AGGREGATE IF EXISTS array_accum(float) CASCADE;
 CREATE AGGREGATE array_accum (
     sfunc = array_append,

@@ -2,13 +2,10 @@ set search_path to public;
 
 CREATE OR REPLACE FUNCTION all_gte(int[], int[]) RETURNS boolean AS
 $$
-DECLARE
-    left alias for $1;
-    right alias for $2;
 BEGIN
-FOR i in 1 .. array_upper(left,1)
+FOR i in 1 .. array_upper($1,1)
 LOOP
-    if left[i] < right [i] then
+    if $1[i] < $2[i] then
         return false;
     end if;
 END LOOP;
