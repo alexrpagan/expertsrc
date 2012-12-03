@@ -28,8 +28,12 @@ class InsufficientFundsException(Exception):
 
 
 class UserFunctions:
-    def get_next_job(self):
-        return Assignment.objects.filter(answerer=self, completed=False).order_by('create_time')[0]
+
+    def get_jobs(self, domain):
+        questions = BaseQuestion.objects.filter(domain=domain)
+        return Assignment.objects.filter(answerer=self, 
+                                         completed=False, 
+                                         question__in=questions).order_by('create_time')[:10]
 
     def get_jobs(self):
         return Assignment.objects.filter(answerer=self, completed=False).order_by('create_time')[:10]
@@ -198,6 +202,7 @@ class BaseQuestion(models.Model):
     domain = models.ForeignKey(Domain)
     submit_time = models.DateTimeField(auto_now_add=True)
     question_type = models.ForeignKey(QuestionType)
+    batch = models.ForeignKey(Batch, blank=True, null=True)
 
     @staticmethod
     def get_gui_url(user_id, jobs):
@@ -268,10 +273,9 @@ class ReviewAssignment(models.Model):
 class SchemaMapQuestion(BaseQuestion, BatchSupport):
     local_field_id = models.PositiveIntegerField(unique=True)
     local_field_name = models.CharField(max_length=128)
-    batch = models.ForeignKey(Batch)
 
-    def __unicode__():
-        return local_field_name
+    def __unicode__(self):
+        return self.local_field_name
 
     @staticmethod
     @transaction.commit_on_success
