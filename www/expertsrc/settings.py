@@ -5,7 +5,7 @@ TEMPLATE_DEBUG = DEBUG
 
 # change this to the absolute path to the dir where the checked-out expertsrc git repository lives
 # make sure that this ends with a trailing slash
-PROJECT_ROOT = '/home/apagan/test-env/apps/'
+PROJECT_ROOT = '/home/apagan/deploy/ve/apps/'
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
@@ -15,20 +15,20 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'expertsrc',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', 
+        'NAME': 'expertsrc',                      
         'USER': 'apagan',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',
+        'PORT': '5433',
     },
     'goby': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', 
         'NAME': 'goby',
         'USER': 'apagan',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',
+        'PORT': '5433',
     }
 }
 
@@ -105,24 +105,16 @@ AUTH_PROFILE_MODULE = 'ui.UserProfile'
 
 STATIC_DOC_ROOT =  PROJECT_ROOT + "expertsrc/www/static"
 
-TEST_DOMAIN_NAME = 'ski'
-
-import logging
-
-logging.basicConfig(
-    filename = '/home/apagan/logs/err.log',
-    level = logging.DEBUG,
-    format = '%(asctime)s %(message)s',
-)
-
 LOGIN_URL = '/login'
 
 STATIC_URL = '/media/'
 
-TAMER_URL = 'http://modis.csail.mit.edu:8080'
+TAMER_URL = 'http://modis.csail.mit.edu:7979'
 
 TAMER_DB = 'goby'
 
-WATCHER_LOGFILE = '/home/apagan/logs/watchers.log'
-
 MASK_LEVELS = True
+
+LOG_MARKET_STATS = True
+
+DYNPRICING = False
