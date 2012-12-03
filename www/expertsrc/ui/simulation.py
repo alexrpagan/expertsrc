@@ -13,8 +13,8 @@ import math
 
 CONFIG = {
     'number_of_batches': 100,
-   	'worker_ability_mean': 1.1,
-   	'worker_ability_stddev': .5,
+   	'worker_ability_mean': 1.44,
+   	'worker_ability_stddev': .59,
     'worker_pop_size': 100,
 	'batch_size_mean': 10,
 	'batch_size_stddev': 2,
@@ -86,9 +86,9 @@ def run_experiment():
 
 def create_domain():
     domain = Domain()
-    domain.short_name = 'data-tamer'
-    domain.long_name = 'Data Tamer Questions'
-    domain.description = 'lorem ipsum'
+    domain.short_name = 'data-tamer-synth'
+    domain.long_name = 'Fake Domain'
+    domain.description = 'a fake domain.'
     domain.save()
     return domain
 
@@ -105,7 +105,7 @@ def create_levels():
 
 def create_asker():
     asker_budget = CONFIG['asker_budget'] 
-    asker = User.objects.create_user('ask', '', 'test')
+    asker = User.objects.create_user('ask-synth', '', 'test')
     asker.save()
     profile = UserProfile(user=asker,
                           user_class=ASK_CODE,
@@ -143,7 +143,7 @@ def create_answerers(domain):
     
 def create_application():
     app = Application()
-    app.name = 'data-tamer'
+    app.name = 'data-tamer-synth'
     app.db_alias = settings.TAMER_DB
     app.ui_url = settings.TAMER_URL
     app.save()
@@ -153,7 +153,7 @@ def create_application():
 def create_question_type(app):
     train = QuestionType()
     train.long_name = 'Training questions'
-    train.short_name = 'training'
+    train.short_name = 'training-synth'
     train.app = app
     train.question_class = ContentType.objects.get(app_label='ui', model='nrtrainingquestion')
     train.answer_class = ContentType.objects.get(app_label='ui', model='nrtraininganswer')
@@ -237,15 +237,23 @@ def do_batch(reprice=False):
     if reprice:
         dp.update_prices()
         allocs.update_prices(DOMAIN.id)
+    db.log_market_stats(DOMAIN.id)
     take_system_snapshot()    
     return True
 
 
 def cleanup():
-    User.objects.filter(username__startswith='ask').delete()
-    User.objects.filter(username__startswith='ans').delete()
-    Domain.objects.filter(short_name='data-tamer').delete()
-    Application.objects.filter(name='data-tamer').delete()
+    User.objects.filter(username__startswith='ask-synth').delete()
+    User.objects.filter(username__startswith='ans-synth').delete()
+    domain = Domain.objects.filter(short_name='data-tamer-synth')
+    did = domain[0].id
+    domain.delete()
+    Application.objects.filter(name='data-tamer-synth').delete()
+    print 'deleting market history'
+    cur = connection.cursor()
+    cur.execute('delete from market_snap where domain_id = %s;', (did,))
+    cur.connection.commit()
+
 
 
 def prob_correct(ability, difficulty=1):
@@ -257,6 +265,6 @@ def sigmoid(x):
 
 
 def generate_names(number):
-    return ['ans%s' % x for x in range(1, number+1)]
+    return ['ans-synth%s' % x for x in range(1, number+1)]
 
 
