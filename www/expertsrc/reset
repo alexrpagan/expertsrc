@@ -1,0 +1,8 @@
+#!/bin/bash
+
+rm ../usage.pickle
+rm ../usage.pickle.bkp
+python manage.py dump_users
+python manage.py create_users
+python manage.py reset_nr_questions
+mv usage.pickle ..
