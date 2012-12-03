@@ -7,7 +7,7 @@ import django
 import threading
 
 
-SWALLOW_RUNTIME_EXCEPTIONS=False
+SWALLOW_RUNTIME_EXCEPTIONS=True
 
 
 class QueueWatcher(threading.Thread):
@@ -43,8 +43,9 @@ class QueueWatcher(threading.Thread):
             except KeyboardInterrupt:
                 print 'Caught keyboard interrupt. Bailing out.'
             except Exception, e:
+                print e
                 print 'Cause exception in queue: %s' % self.queue_name
-		if not SWALLOW_RUNTIME_EXCEPTION:
+		if not SWALLOW_RUNTIME_EXCEPTIONS:
 	            raise e
 
 
