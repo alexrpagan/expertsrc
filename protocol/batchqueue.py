@@ -24,7 +24,7 @@ class BatchQueue:
         NOTE: Type of the batch object must match the type of objects in the
         queue (e.g. QuestionBatch) or else deserialization will fail.
         """
-        self.conn = redis.Redis()
+        self.conn = redis.Redis(port=6379)
         self.batch_obj = batch_obj
         self.queue_name = queue_name
 
