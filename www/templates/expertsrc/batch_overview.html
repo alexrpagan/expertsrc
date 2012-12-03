@@ -5,7 +5,7 @@
 {% block sidebar %} {% endblock sidebar %}
 
 {% block content %}
-<div class="span8 offset2">
+<div class="content">
   <h1>Question batch overview</h1>
   <br />
   <div class="row info">
@@ -19,18 +19,20 @@
   <table id="choose_alloc" class="table">
     <thead>
       <tr>
-	<th>Field Name</th>
+	<th>Task ID</th>
 	<th># of Workers</th>
-	<th>Confidence Score</th>
+<!--	<th>Confidence Score</th> -->
+<!--    <th>Price</th> -->
 	<th>Progress</th>
       </tr>
     </thead>
     <tbody>
       {% for rec in overview %}
       <tr>
-	<td>{{rec.local_field_name}}</td>
+	<td>{{rec.question_id}}</td>
 	<td>{{rec.number_allocated}}</td>
-	<td>{{rec.confidence|floatformat:5}}</td>
+<!--	<td>{{rec.confidence|floatformat:5}}</td> -->
+<!--    <td>{{rec.price}}</td> -->
 	<td>
 	  <div class="progress {% if rec.progress == 100 %}progress-success{%else%}progress-info{%endif%}"><div class="bar" style="width: {{ rec.progress }}%"></div>
 	  </div>

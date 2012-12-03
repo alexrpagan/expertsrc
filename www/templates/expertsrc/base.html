@@ -7,12 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link href="/static/css/bootstrap.css" rel="stylesheet"/>
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
-
+    <link href="/static/css/base.css" rel="stylesheet"/>
     {% block styles %}
     {% endblock styles %}
   </head>
@@ -38,6 +33,7 @@
 		 {% if user.userprofile.user_class == "ASK" %}
 	         <li id="nav-batches"><a href="/batches">Question Batches</a></li>
 	         <li id="nav-overview"><a href="/user/overview">User Overview</a></li>
+             <li id="nav-domain"><a href="/domain">Domain Info</a></li>
 		 <!-- <li><a href="/review">Review</a></li> -->
 		 {% endif %}
 	      {% endif %}
@@ -55,13 +51,9 @@
       </div>
     </div>
     <div class="container">
-      <div id="sidebar" class="span2">
-	{% block sidebar %}{% endblock sidebar %}
-      </div>
-      {% block content %}{% endblock content %}
+     {% block content %}{% endblock content %}
     </div>
-
-    <!--[if lt IE 9]>
+   <!--[if lt IE 9]>
       <script src="/static/js/html5.js"></script>
     <![endif]-->
 
