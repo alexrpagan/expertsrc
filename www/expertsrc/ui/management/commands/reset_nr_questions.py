@@ -26,5 +26,5 @@ class Command(NoArgsCommand):
         dt.save()
         profile = UserProfile(user=dt,
                               user_class='ASK',
-                              bank_balance=1000)
+                              bank_balance=100000000)
         profile.save()

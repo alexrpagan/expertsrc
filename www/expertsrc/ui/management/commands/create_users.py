@@ -12,12 +12,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.contenttypes.models import ContentType
 from ui.models import *
 from ui.dbaccess import *
+from ui.workerstats.allocations import generate_and_insert
 from django.db import connection, transaction 
 
+import ui.pricing.dynprice as dp
 import random
 
 NUMBER_OF_QUESTIONS=100
-NUMBER_OF_ANSWERERS=20
+NUMBER_OF_ANSWERERS=50
 AVERAGE_ACCURACY=.8
 STD_DEV_OF_ACCURACY=.05
 AVERAGE_PERCENT_TRUE=.6
@@ -41,7 +43,7 @@ class Command(NoArgsCommand):
         domain = Domain()
         domain.short_name = 'data-tamer'
         domain.long_name = 'Data Tamer Questions'
-        domain.description = 'lorem ipsum'
+        domain.description = 'Schema mapping questions over golf course data.'
         domain.save()
 
         print 'creating levels...'
@@ -87,7 +89,7 @@ class Command(NoArgsCommand):
             temp_acc = TempAccuracy(user=user, accuracy=expected_percent_correct[user])
             temp_acc.save()
 
-            e = Expertise(user=profile, domain=domain, question_quota=15)
+            e = Expertise(user=profile, domain=domain, question_quota=40000)
             e.save()
 
         print 'creating a phony data tamer application'
@@ -117,6 +119,19 @@ class Command(NoArgsCommand):
         schemamap.review_class = ContentType.objects.get(app_label='ui', model='schemamapreview')
         schemamap.save()
         
+        generate_and_insert(10)
+
+        print 'prime dynamic pricing alogorithm...'
+        dp.update_prices()
+
+        print 'deleting market history'
+        cur = connection.cursor()
+        cur.execute('delete from market_snap;')
+        cur.connection.commit()
+
+        print 'creating initial market log'
+        log_market_stats(domain.id)
+       
         if USE_FAKE_ACCURACY:
             print 'done'
             return
@@ -194,6 +209,8 @@ class Command(NoArgsCommand):
         cur = connection.cursor()
         cur.execute('select * from time_warp_training_questions()')
         cur.connection.commit()
+
+        #create alloc stems and initial prices
  
         # print 'setting level prices...'
         # update_prices()
