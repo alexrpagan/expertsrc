@@ -7,6 +7,7 @@ import ui.workerstats.allocations as alloc
 import pulp
 import decimal
 
+
 @transaction.commit_on_success
 def get_answerer_domain_overview(user):
     cursor = connection.cursor()
@@ -39,19 +40,30 @@ def get_global_user_overview():
 
 
 @transaction.commit_on_success
-# TODO: Replace this with a generic view
+def get_user_overview(domain):
+    cursor = connection.cursor()
+    cmd = """ SELECT username, short_name, question_quota,
+                     accuracy, user_level, num_pending
+              FROM answerer_overview as o
+              WHERE domain_id = %s
+              ORDER BY o.accuracy DESC, o.short_name """
+    cursor.execute(cmd, (domain,))
+    res = utils.dictfetchall(cursor)
+    return res
+
+
+@transaction.commit_on_success
 def get_batch_overview(batch_id):
     cursor = connection.cursor()
-    cmd = """ SELECT local_field_name, number_allocated,
-                     number_completed, poisson_binomial_conf as conf
+    cmd = """ SELECT question_id, number_completed, user_confs, total_price 
               FROM batch_overview as o
-              WHERE id = %s"""
+              WHERE batch_id = %s"""
     cursor.execute(cmd, (batch_id,))
     return utils.dictfetchall(cursor)
 
 
 @transaction.commit_on_success
-def get_availability_histo(domain_id):
+def get_availability_histo(domain):
     cursor = connection.cursor()
     cmd = """ SELECT user_level as level,
               SUM(num_to_answer - num_pending) as avail
@@ -59,7 +71,7 @@ def get_availability_histo(domain_id):
               WHERE domain_id = %s
               GROUP BY user_level
               ORDER BY user_level ASC """
-    cursor.execute(cmd, (domain_id,))
+    cursor.execute(cmd, (domain,))
     histo_raw = utils.dictfetchall(cursor)
     histo = Counter()
     for row in histo_raw:
@@ -108,12 +120,82 @@ def get_user_list(domain):
 
 
 @transaction.commit_on_success
-def get_candidates(domain, criterion, method, limit=100):
+def get_price_array(domain):
     cursor = connection.cursor()
+    cmd = """ SELECT array_accum(price)
+              FROM (
+                SELECT price from ui_level
+                WHERE domain_id = %s
+                ORDER BY level_number) i"""
+    cursor.execute(cmd, (domain,))
+    return cursor.fetchone()[0]
+
+
+@transaction.commit_on_success
+def get_avail_array(domain):
     histo = get_level_dist(domain)
     avail_arry = [0] * get_level_count(domain)
     for key in sorted(histo.keys()):
         avail_arry[key - 1] = histo[key]
+    return avail_arry 
+
+
+@transaction.commit_on_success
+def log_market_stats(domain):
+    cursor = connection.cursor()
+    cmd = """ INSERT INTO market_snap (dist, avails, prices, domain_id) 
+              VALUES (%s, %s, %s, %s) """
+    histo = get_availability_histo(domain)
+    avails = [0] * get_level_count(domain)
+    for key in sorted(histo.keys()):
+        avails[key - 1] = histo[key]  
+    prices = get_price_array(domain)
+    dist = get_avail_array(domain)
+    cursor.execute(cmd, (dist, avails, prices, domain,))
+
+
+def get_avail_data(domain):
+    cursor = connection.cursor()
+    cmd = """ SELECT time, avails
+              FROM market_snap
+              WHERE domain_id = %s
+              ORDER BY time"""
+    cursor.execute(cmd, (domain,))
+    res = []
+    step = 0
+    for row in cursor.fetchall():
+        time, avails = row
+        if len(res) == 0:
+            res.append(['time'] + [str(i + 1) for i in range(len(avails))])
+#        res.append([time.strftime("%d/%m/%y %H:%M:%S")] + map(str, avails))
+        res.append([str(step)] + map(str, avails))
+        step += 1
+    return res
+ 
+
+def get_price_data(domain):
+    cursor = connection.cursor()
+    cmd = """ SELECT time, prices
+              FROM market_snap
+              WHERE domain_id = %s
+              ORDER BY time """
+    cursor.execute(cmd, (domain,))
+    res = []
+    step = 0
+    for row in cursor.fetchall():
+        time, prices = row
+        if len(res) == 0:
+            res.append(['time'] + [str(i + 1) for i in range(len(prices))])
+#        res.append([time.strftime("%d/%m/%y %H:%M:%S")] + map(str, avails))
+        res.append([str(step)] + map(str, prices))
+        step += 1
+    return res
+        
+
+@transaction.commit_on_success
+def get_candidates(domain, criterion, method, limit=100):
+    cursor = connection.cursor()
+    avail_arry = get_avail_array(domain)
     if method == 'min_price':
         cmd = """ SELECT dist, conf, price
                   FROM alloc_stems as a

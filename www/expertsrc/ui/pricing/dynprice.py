@@ -84,7 +84,7 @@ def get_price_update(old={}, new={}):
 """
 
 def get_price_update(old={}, new={}):
-    smoothing = .05
+    smoothing = 1 
     update = {}
     for domain in old.keys():
         update[domain] = {}
