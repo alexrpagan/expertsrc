@@ -51,37 +51,35 @@ def hist_to_ratio(histo):
         ratio[key] = float(ratio[key]) / normalizer
     return ratio
 
-"""
-def get_price_update(old={}, new={}):
-    update = {}
-    for domain in old.keys():
-        update[domain] = {}
-        old_tmp, new_tmp = old[domain], new[domain]
-        assert frozenset(old_tmp.keys()).__hash__() == \
-               frozenset(new_tmp.keys()).__hash__()
-        current = hist_to_ratio(old_tmp - new_tmp)
-        desired = hist_to_ratio(new_tmp)
-        adj = {}
-        for level in current.keys():
-            adj[level] = float(desired[level]) / float(current[level])
-        update[domain] = adj
-        prices = \
-            dict((l.level_number, l.price,) \
-                 for l in ui.models.Level.objects.filter(domain_id=domain))
-        ratio = hist_to_ratio(prices)
-        old_ratio = dict(ratio)
-        adj = update[domain]
-        for l1 in adj:
-            for l2 in ratio:
-                if l1 != l2 and adj[l1] > 0:
-                    ratio[l2] *= adj[l1]
-        renormalizer = sum(ratio.values())
-        for l in ratio:
-            ratio[l] /= float(renormalizer)
-#            update[domain][l] = prices[l] * (1 + (ratio[l] - old_ratio[l]))
-            update[domain][l] = sum(prices.values()) * ratio[l]
-    return update
-"""
+#def get_price_update(old={}, new={}):
+#    update = {}
+#    for domain in old.keys():
+#        update[domain] = {}
+#        old_tmp, new_tmp = old[domain], new[domain]
+#        assert frozenset(old_tmp.keys()).__hash__() == \
+#               frozenset(new_tmp.keys()).__hash__()
+#        current = hist_to_ratio(old_tmp - new_tmp)
+#        desired = hist_to_ratio(new_tmp)
+#        adj = {}
+#        for level in current.keys():
+#            adj[level] = float(desired[level]) / float(current[level])
+#        update[domain] = adj
+#        prices = \
+#            dict((l.level_number, l.price,) \
+#                 for l in ui.models.Level.objects.filter(domain_id=domain))
+#        ratio = hist_to_ratio(prices)
+#        old_ratio = dict(ratio)
+#        adj = update[domain]
+#        for l1 in adj:
+#            for l2 in ratio:
+#                if l1 != l2 and adj[l1] > 0:
+#                    ratio[l2] *= adj[l1]
+#        renormalizer = sum(ratio.values())
+#        for l in ratio:
+#            ratio[l] /= float(renormalizer)
+##            update[domain][l] = prices[l] * (1 + (ratio[l] - old_ratio[l]))
+#            update[domain][l] = sum(prices.values()) * ratio[l]
+#    return update
 
 def get_price_update(old={}, new={}):
     smoothing = 1 
