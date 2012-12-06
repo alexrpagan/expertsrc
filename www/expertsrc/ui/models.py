@@ -8,6 +8,12 @@ from django.conf import settings
 from ui.dbaccess import *
 from ui.utils import *
 
+import logging
+import sys
+import traceback
+
+logger = logging.getLogger(__name__)
+
 ####
 #### signal recievers
 ####
@@ -33,10 +39,10 @@ class UserFunctions:
         questions = BaseQuestion.objects.filter(domain=domain)
         return Assignment.objects.filter(answerer=self, 
                                          completed=False, 
-                                         question__in=questions).order_by('create_time')[:10]
+                                         question__in=questions).order_by('create_time')
 
-    def get_jobs(self):
-        return Assignment.objects.filter(answerer=self, completed=False).order_by('create_time')[:10]
+#    def get_jobs(self):
+#        return Assignment.objects.filter(answerer=self, completed=False).order_by('create_time')[:10]
 
     def get_review_jobs(self):
         jobs = ReviewAssignment.objects.filter(reviewer=self, completed=False).order_by('create_time')[:10]
@@ -289,7 +295,7 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
             smq = SchemaMapQuestion()
             smq.batch = batch_rec
             smq.asker = batch_rec.owner
-            smq.domain = Domain.objects.get(short_name='data-tamer')
+            smq.domain = Domain.objects.get(short_name=question.domain_name)
             smq.question_type = QuestionType.objects.get(short_name='schemamap')
             smq.local_field_id = question.local_field_id
             smq.local_field_name = question.local_field_name
@@ -301,6 +307,7 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
                 smc.global_attribute_name = choice.global_attribute_name
                 smc.confidence_score = choice.confidence_score
                 smc.save()
+           
 
     @staticmethod
     def get_gui_url(user_id, jobs):
@@ -310,9 +317,11 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
 
         This assumes that the jobs list is non-empty
         """
+        assert len(jobs) > 0
+        domain_id = jobs[0].question.domain.id 
         fields = ','.join([str(job.question.schemamapquestion.local_field_id) for job in jobs])
-        redirect_base = '%s/doit/%s/fields/map?answerer_id=%s&fields=%s'
-        redirect_url = redirect_base % (settings.TAMER_URL, settings.TAMER_DB, user_id, fields,)
+        redirect_base = '%s/doit/%s/fields/map?answerer_id=%s&fields=%s&domain_id=%s'
+        redirect_url = redirect_base % (settings.TAMER_URL, settings.TAMER_DB, user_id, fields, domain_id)
         return redirect_url
 
     @staticmethod
@@ -356,9 +365,6 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             answerer = User.objects.get(pk=answer.answerer_id)
             sma = SchemaMapAnswer()
             question = sma.question = SchemaMapQuestion.objects.get(local_field_id=answer.local_field_id)
-#            if not reviewer:
-#                reviewer_dict = select_reviewer(question.domain)
-#                reviewer = User.objects.get(pk=reviewer_dict['user_id'])
             sma.answerer = answerer
             sma.confidence = answer.confidence
             sma.authority = answer.authority
@@ -369,7 +375,6 @@ class SchemaMapAnswer(BaseAnswer, BatchSupport):
             sma.local_field_id = answer.local_field_id
             sma.is_match = answer.is_match
             sma.save()
- #           sma.register_for_review(reviewer=reviewer)
             assn = Assignment.objects.get(answerer=answerer, question=sma.question)
             assn.completed = True
             assn.save()

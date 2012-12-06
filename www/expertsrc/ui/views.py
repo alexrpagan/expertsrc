@@ -20,6 +20,7 @@ import dbaccess
 import ui.workerstats.allocations as allc
 import ui.pricing.dynprice as dp
 
+logger = logging.getLogger(__name__)
 
 def dict_to_json_response(response_dict):
     return HttpResponse(simplejson.dumps(response_dict), mimetype='application/json')
@@ -87,24 +88,33 @@ def review_home(request):
 
 
 @login_required
-def next_question(request):
-    """
-    TODO:
-    This currently falsely assumes that all questions in the jobs queue will
-    have the same type.
-
-    One acceptable, though not optimal, workaround would be do scan through
-    the jobs queue and batch together all jobs of the first encountered type
-    then return the gui for that question batch.
-    """
+def next_question(request, domain_id):
     user = request.user
-    jobs = user.get_jobs()
+    domain = get_object_or_404(Domain, id=domain_id)
+    jobs = user.get_jobs(domain)
+    jobs_by_type = {}
     if len(jobs) > 0:
-        QuestionModel = jobs[0].question.question_type.question_class.model_class()
-        redirect_url = QuestionModel.get_gui_url(user.id, jobs)
-        return HttpResponseRedirect(redirect_url)
+        for job in jobs:
+            QuestionModel = job.question.question_type.question_class.model_class()
+            l = jobs_by_type.setdefault(QuestionModel, [])
+            l.append(job)
+        for model_class in jobs_by_type.keys():
+            if len(jobs_by_type[model_class]) > 0:
+                cands = sorted(jobs_by_type[model_class], key=lambda x: x.question.batch.id)
+                batch_id = cands[0].question.batch.id
+                for x in range(len(cands)):
+                    if cands[x].question.batch.id != batch_id:
+                        break
+                page_limit = 10
+                idx = x
+                if x >= page_limit:
+                    idx = page_limit
+                elif x == len(cands) - 1:
+                    idx = x + 1
+                redirect_url = model_class.get_gui_url(user.id, cands[:idx])
+                return HttpResponseRedirect(redirect_url)
     else:
-        return HttpResponseRedirect('/answer/')
+        return HttpResponseRedirect('/')
 
 
 @login_required
@@ -362,7 +372,7 @@ def import_schema_map_questions(request):
 
 
 def import_schema_map_answers(request):
-    return HttpResponseRedirect('/answer/')
+    return HttpResponseRedirect('/')
 
 
 def about(request):

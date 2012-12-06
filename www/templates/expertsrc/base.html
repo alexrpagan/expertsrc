@@ -26,9 +26,6 @@
 	      <!-- <li id="nav-about"><a href="/about">About</a></li> -->
 	      {% if user.username %}
                  <li id="nav-user"><a href="/user">User HQ</a></li>
-		 {% if user.userprofile.user_class == "ANS" %}
-                 <li id="nav-answer"><a href="/answer">Answer</a></li>
-		 {% endif %}
 
 		 {% if user.userprofile.user_class == "ASK" %}
 	         <li id="nav-batches"><a href="/batches">Question Batches</a></li>

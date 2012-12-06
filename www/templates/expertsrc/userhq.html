@@ -21,7 +21,7 @@
 <section id="overview">
   <br />
   <div class="row">
-    <div class="span8">
+    <div>
       <table class="table" id="domain-overview">
 	<thead>
 	  <tr>
@@ -29,6 +29,7 @@
 	    <th>Total # assigned</th>
 	    <th>Total # answered</th>
 	    <th>Total # pending</th>
+        <th></th>
 	  </tr>
 	</thead>
 	<tbody>
@@ -50,14 +51,17 @@
 		{{ entry.num_pending }}
 	      </span>
 	    </td>
+        <td>
+        {% if entry.num_pending > 0 %}
+            <a href="/answer/{{entry.domain_id}}/next_question" class="btn btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i></a>
+        {% endif %}
+        </td>
 	  </tr>
 	  {% endfor %}
 	</tbody>
       </table>
       <hr />
-      <a href="#" class="btn" rel="popover" data-content="Questions are sorted into <b>domains</b> based on the types of expertise needed to answer them. This is a breakdown of the domains and questions that you've been assigned." data-original-title="Domain Table">More info</a>
-      <a href="/answer/next_question" class="btn btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i> </a>
-    </div>
+   </div>
   </div>
   <br />
   <br />
