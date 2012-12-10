@@ -11,44 +11,44 @@
   <div class="row info">
     <div class="span8">
       <p class="lead">
-	View the progress of the questions you've sent to crowd workers.
-      </p>
-    </div> 
-  </div>
-  <br/>
-  <table id="choose_alloc" class="table">
-    <thead>
-      <tr>
-	<th>Task ID</th>
-	<th># of Workers</th>
-<!--	<th>Confidence Score</th> -->
-<!--    <th>Price</th> -->
-	<th>Progress</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for rec in overview %}
-      <tr>
-	<td>{{rec.question_id}}</td>
-	<td>{{rec.number_allocated}}</td>
-<!--	<td>{{rec.confidence|floatformat:5}}</td> -->
-<!--    <td>{{rec.price}}</td> -->
-	<td>
-	  <div class="progress {% if rec.progress == 100 %}progress-success{%else%}progress-info{%endif%}"><div class="bar" style="width: {{ rec.progress }}%"></div>
-	  </div>
-	</td>
-      </tr>
-      {% endfor %}
-      <tr>
-      </tr>
-    </tbody>
-  </table>
-  <a class="btn btn-primary pull-right" href="{% url user_batches %}">Question Batches</a>
+       View the progress of the questions you've sent to crowd workers.
+     </p>
+   </div>
+ </div>
+ <br/>
+ <table id="choose_alloc" class="table">
+  <thead>
+    <tr>
+     <th>Task ID</th>
+     <th># of Workers</th>
+     <!--	<th>Confidence Score</th> -->
+     <!--    <th>Price</th> -->
+     <th>Progress</th>
+   </tr>
+ </thead>
+ <tbody>
+  {% for rec in overview %}
+  <tr>
+   <td>{{rec.question_id}}</td>
+   <td>{{rec.number_allocated}}</td>
+   <!--	<td>{{rec.confidence|floatformat:5}}</td> -->
+   <!--    <td>{{rec.price}}</td> -->
+   <td>
+     <div class="progress {% if rec.progress == 100 %}progress-success{%else%}progress-info{%endif%}"><div class="bar" style="width: {{ rec.progress }}%"></div>
+   </div>
+ </td>
+</tr>
+{% endfor %}
+<tr>
+</tr>
+</tbody>
+</table>
+<a class="btn btn-primary pull-right" href="{% url user_batches %}">Question Batches</a>
 </div>
 {% endblock content %}
 
 {% block jquery %}
 <script type="text/javascript">
-  $("#nav-batches").addClass("active");
+$("#nav-batches").addClass("active");
 </script>
 {% endblock jquery %}

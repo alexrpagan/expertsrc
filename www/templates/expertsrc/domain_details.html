@@ -9,34 +9,34 @@
 {% block content %}
 <div id="domain-overview" class="content">
 
-<div>
-  <h1>{{domain.long_name}}</h1>
-  <br />
-  <p>{{domain.description}}</p>
-</div>
-<hr/>
-<div>
+  <div>
+    <h1>{{domain.long_name}}</h1>
+    <br />
+    <p>{{domain.description}}</p>
+  </div>
+  <hr/>
+  <div>
     <p class="lead">User Accuracy</p>
     <p>See the distribution of worker accuracy scores within this domain.</p>
     <div class="hide" id="accData">{{acc_data}}</div>
     <div id="ability-histo">
     </div>
-</div>
-<hr/>
-<div>
+  </div>
+  <hr/>
+  <div>
     <p class="lead">Expert Worker Wages</p>
-    <p>Track how worker wages have changed over time.</p>  
+    <p>Track how worker wages have changed over time.</p>
     <div id="price-graph">
     </div>
-</div>
-<hr/>
-<div>
+  </div>
+  <hr/>
+  <div>
     <p class="lead">Availability History</p>
     <p>Track how worker availability has changed over time.</p>
     <div id="avail-graph">
     </div>
-</div>
-<hr/>
+  </div>
+  <hr/>
 <!--
 <section id="overview">
   <p class="lead">Per-user information.</p>
@@ -67,11 +67,11 @@
 </section>-->
 
 
-{% endblock content %} 
+{% endblock content %}
 
 {% block jquery %}
 <script type="text/javascript">
-  $("#nav-domain").addClass("active");
+$("#nav-domain").addClass("active");
 </script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/d3.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/availvis.js"></script>

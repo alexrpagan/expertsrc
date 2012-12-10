@@ -2,12 +2,12 @@
 
 {% block styles %}
 <style type="text/css" media="screen">
-  .spin {
-    margin-bottom: 20px;
-    min-height: 20px;
-    padding: 19px;
+.spin {
+  margin-bottom: 20px;
+  min-height: 20px;
+  padding: 19px;
 }
-  .info {
+.info {
   margin-left: 30px;
   margin-bottom: 30px;
 }
@@ -28,42 +28,42 @@
   <div class="row">
     <div class="span8">
       <p class="lead">
-	Manage question batches imported from Data Tamer.
-      </p>
-    </div>
+       Manage question batches imported from Data Tamer.
+     </p>
+   </div>
+ </div>
+ <div class="row">
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert span4 info">
+    {{ message }}
   </div>
-  <div class="row">
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert span4 info">
-      {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
+  {% endfor %}
+  {% endif %}
+</div>
+<table id="batches" class="table" {% if not batches %} style="display:none;" {% endif %}>
+  <thead>
+    <tr>
+     <th>Time created</th>
+     <th>Data source name</th>
+     <th>Question type</th>
+     <th>Is allocated?</th>
+     <th></th>
+   </tr>
+ </thead>
+ <tbody>
+  {% include "expertsrc/batch_rows.html" %}
+</tbody>
+</table>
+<br />
+<hr />
+<div class="row">
+  <div id="status" class="alert alert-info span2" style="display:none;">
   </div>
-  <table id="batches" class="table" {% if not batches %} style="display:none;" {% endif %}>
-    <thead>
-      <tr>
-	<th>Time created</th>
-	<th>Data source name</th>
-	<th>Question type</th>
-	<th>Is allocated?</th>
-	<th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% include "expertsrc/batch_rows.html" %}
-    </tbody>
-  </table>
-  <br />
-  <hr />
-  <div class="row">
-    <div id="status" class="alert alert-info span2" style="display:none;">
-    </div>
-    <div id="spinner" class="spin span2">
-    </div>
-    <a class="btn btn-primary pull-right" href="{% url redirect_to_tamer %}">Go to Data Tamer</a>
+  <div id="spinner" class="spin span2">
   </div>
+  <a class="btn btn-primary pull-right" href="{% url redirect_to_tamer %}">Go to Data Tamer</a>
+</div>
 </div>
 
 {% endblock content %}
@@ -74,7 +74,7 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/user_batches.js"></script>
 
 <script type="text/javascript">
-  $("#nav-batches").addClass("active");
+$("#nav-batches").addClass("active");
 </script>
 
 {% endblock jquery %}

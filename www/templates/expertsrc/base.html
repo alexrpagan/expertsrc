@@ -1,58 +1,58 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>{% block title %}Expert Sourcing{% endblock title %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet"/>
-    <link href="{{ STATIC_URL }}css/base.css" rel="stylesheet"/>
-    {% block styles %}
-    {% endblock styles %}
-  </head>
-  <body>
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="{% url index %}">Expertsrc</a>
-          <div class="nav-collapse">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Expert Sourcing{% endblock title %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet"/>
+  <link href="{{ STATIC_URL }}css/base.css" rel="stylesheet"/>
+  {% block styles %}
+  {% endblock styles %}
+</head>
+<body>
+  <div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="{% url index %}">Expertsrc</a>
+        <div class="nav-collapse">
           <ul class="nav">
-	      <!-- <li id="nav-about"><a href="/about">About</a></li> -->
-	      {% if user.username %}
-            <li id="nav-user"><a href="{% url resolve_user %}">User HQ</a></li>
+           <!-- <li id="nav-about"><a href="/about">About</a></li> -->
+           {% if user.username %}
+           <li id="nav-user"><a href="{% url resolve_user %}">User HQ</a></li>
 
-		    {% if user.userprofile.user_class == "ASK" %}
-	            <li id="nav-batches"><a href="{% url user_batches %}">Question Batches</a></li>
-	            <li id="nav-overview"><a href="{% url global_user_overview %}">User Overview</a></li>
-                <li id="nav-domain"><a href="{% url domain %}">Domain Info</a></li>
-		    {% endif %}
-	      {% endif %}
-          </ul>
-          <ul class="nav pull-right">
-	         {% if user.username %}
-	            <li><a href="{% url resolve_user %}">{{ user.username }}</a></li>
-	            <li><a href="{% url logout %}">Logout</a></li>
-	         {% else %}
-	            <li><a href="{% url login %}">Login</a></li>
-	         {% endif %}
-	      </ul>
-          </div><!--/.nav-collapse -->
-        </div>
-      </div>
+           {% if user.userprofile.user_class == "ASK" %}
+           <li id="nav-batches"><a href="{% url user_batches %}">Question Batches</a></li>
+           <li id="nav-overview"><a href="{% url global_user_overview %}">User Overview</a></li>
+           <li id="nav-domain"><a href="{% url domain %}">Domain Info</a></li>
+           {% endif %}
+           {% endif %}
+         </ul>
+         <ul class="nav pull-right">
+          {% if user.username %}
+          <li><a href="{% url resolve_user %}">{{ user.username }}</a></li>
+          <li><a href="{% url logout %}">Logout</a></li>
+          {% else %}
+          <li><a href="{% url login %}">Login</a></li>
+          {% endif %}
+        </ul>
+      </div><!--/.nav-collapse -->
     </div>
-    <div class="container">
-        {% block content %}{% endblock content %}
-    </div>
+  </div>
+</div>
+<div class="container">
+  {% block content %}{% endblock content %}
+</div>
    <!--[if lt IE 9]>
       <script src="{{ STATIC_URL }}js/html5.js"></script>
-    <![endif]-->
-    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.7.2.min.js"></script>
-    {% block jquery %}{% endblock jquery %}
-  </body>
-</html>
+      <![endif]-->
+      <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.7.2.min.js"></script>
+      {% block jquery %}{% endblock jquery %}
+    </body>
+    </html>

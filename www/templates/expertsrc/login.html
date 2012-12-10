@@ -14,18 +14,18 @@
   <div class="row">
     <div style="margin-left:40px;">
       <p class="lead">
-	<!-- Please sign in with the credentials you received by email. -->
-      </p>
-    </div>
-  </div>
+       <!-- Please sign in with the credentials you received by email. -->
+     </p>
+   </div>
+ </div>
 
-  <br />
+ <br />
 
-  <form action="{% url login %}" method="POST" class="well form-inline">
-    {% csrf_token %}
-    {% if next %}
-    <input type="hidden" name="next" value="{{ next }}" />
-    {% endif %}
+ <form action="{% url login %}" method="POST" class="well form-inline">
+  {% csrf_token %}
+  {% if next %}
+  <input type="hidden" name="next" value="{{ next }}" />
+  {% endif %}
 
     <!--[if IE]>
     <label for="username"><b>Username:</b></label>
@@ -47,4 +47,4 @@
   </div>
   {% endif %}
 </div>
-{% endblock content %} 
+{% endblock content %}

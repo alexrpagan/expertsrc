@@ -1,53 +1,53 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>{% block title %}Expert Sourcing{% endblock title %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet"/>
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
-    {% block styles %}
-    {% endblock styles %}
-  </head>
-  <body>
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="{% url index %}">Expertsrc</a>
-        </div>
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Expert Sourcing{% endblock title %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet"/>
+  <style>
+  body {
+    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+  }
+  </style>
+  {% block styles %}
+  {% endblock styles %}
+</head>
+<body>
+  <div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="{% url index %}">Expertsrc</a>
       </div>
     </div>
-    <div class="container">
-      <div class="span8 offset2" style="height:50%;">
-	<h1>Thanks!</h1>
-	<hr />
-	<div>
-	  <p>
-	    You've finished your test of our prototype.  
-	  </p>
-	  <p>
-	    You will recieve email notification if you are selected to test a future release of this software.
-	  </p>
-	  <div class="alert alert-info" style="position:absolute; bottom:0;">
-	    <p>
-	      <small>
-		You can direct any questions or concerns to <a href="mailto:alexrpagan@gmail.com">Alex Pagan</a>.
-	      </small>
-	    </p>
-	  </div>
-	</div> 
+  </div>
+  <div class="container">
+    <div class="span8 offset2" style="height:50%;">
+     <h1>Thanks!</h1>
+     <hr />
+     <div>
+       <p>
+         You've finished your test of our prototype.
+       </p>
+       <p>
+         You will recieve email notification if you are selected to test a future release of this software.
+       </p>
+       <div class="alert alert-info" style="position:absolute; bottom:0;">
+         <p>
+           <small>
+            You can direct any questions or concerns to <a href="mailto:alexrpagan@gmail.com">Alex Pagan</a>.
+          </small>
+        </p>
       </div>
     </div>
-  </body>
+  </div>
+</div>
+</body>
 </html>

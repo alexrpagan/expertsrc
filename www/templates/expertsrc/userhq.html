@@ -7,76 +7,76 @@
 
 {% block content %}
 <div id="domain-overview" class="content">
-<h1>User Overview</h1>
-<br />
-<div class="row">
-  <div class="span8">
-    <p class="lead">
-      Summary of your Expertsrc profile.
-    </p>
-  </div>
-</div>
-
-{% if overview %}
-<section id="overview">
+  <h1>User Overview</h1>
   <br />
   <div class="row">
-    <div>
-      <table class="table" id="domain-overview">
-	<thead>
-	  <tr>
-	    <th>Question Domain</th>
-	    <th>Total # assigned</th>
-	    <th>Total # answered</th>
-	    <th>Total # pending</th>
-        <th></th>
-	  </tr>
-	</thead>
-	<tbody>
-	  {% for entry in overview %}
-	  <tr>
-	    <td>{{ entry.short_name }}</td>
-	    <td>
-	      <span class="badge badge-info">
-		{{ entry.total_answered }}
-	      </span>
-	    </td>
-	    <td>
-	      <span class="badge badge-success">
-		{{ entry.num_answered }}
-	      </span>
-	    </td>
-	    <td>
-	      <span class="badge badge-important">
-		{{ entry.num_pending }}
-	      </span>
-	    </td>
-        <td>
-        {% if entry.num_pending > 0 %}
-            <a href="{% url next_question entry.domain_id %}" class="btn btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i></a>
-        {% endif %}
-        </td>
-	  </tr>
-	  {% endfor %}
-	</tbody>
-      </table>
-      <hr />
-   </div>
+    <div class="span8">
+      <p class="lead">
+        Summary of your Expertsrc profile.
+      </p>
+    </div>
   </div>
-  <br />
-  <br />
-  {% endif %}
+
+  {% if overview %}
+  <section id="overview">
+    <br />
+    <div class="row">
+      <div>
+        <table class="table" id="domain-overview">
+         <thead>
+           <tr>
+             <th>Question Domain</th>
+             <th>Total # assigned</th>
+             <th>Total # answered</th>
+             <th>Total # pending</th>
+             <th></th>
+           </tr>
+         </thead>
+         <tbody>
+           {% for entry in overview %}
+           <tr>
+             <td>{{ entry.short_name }}</td>
+             <td>
+               <span class="badge badge-info">
+                {{ entry.total_answered }}
+              </span>
+            </td>
+            <td>
+             <span class="badge badge-success">
+              {{ entry.num_answered }}
+            </span>
+          </td>
+          <td>
+           <span class="badge badge-important">
+            {{ entry.num_pending }}
+          </span>
+        </td>
+        <td>
+          {% if entry.num_pending > 0 %}
+          <a href="{% url next_question entry.domain_id %}" class="btn btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i></a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <hr />
+</div>
+</div>
+<br />
+<br />
+{% endif %}
 </section>
 <section id="user-profile-info">
   <div class="row">
     {% if not is_answerer %}
     <div class="span4">
       <div>
-	<b>Bank Balance:</b>
-	<h2>{{ profile.bank_balance }} points</h2> 
-	<br />
-	<a href="#" rel="popover" data-content="Users with question-asking privileges can hire other users in the crowd market with an internal currency. Payments are rendered to answerers in that currency. This is your current balance of crowd-market currency." data-original-title="Bank Balance" class="btn btn-mini">More info</a>
-      </div>
+       <b>Bank Balance:</b>
+       <h2>{{ profile.bank_balance }} points</h2>
+       <br />
+       <a href="#" rel="popover" data-content="Users with question-asking privileges can hire other users in the crowd market with an internal currency. Payments are rendered to answerers in that currency. This is your current balance of crowd-market currency." data-original-title="Bank Balance" class="btn btn-mini">More info</a>
+     </div>
       <!--
       <br/>
       <h3>User Profile Info:</h3>
@@ -90,9 +90,9 @@
 	</div>
 	<input type="submit" value="Save User Info" />
       </form>
-      -->
-    </div>
-    {% endif %}
+    -->
+  </div>
+  {% endif %}
 
     <!--
     {% if allow_add_domain %}
@@ -105,30 +105,30 @@
       </form>
     </div>
     {% endif %}
-    -->
-    {% if not is_answerer %} 
-    <div class="span4">
-      <b>User Class:</b>
-      <h2> {% if is_answerer %} Answerer {% else %} Asker {% endif %} </h2>
-	<br />
-	<a href="#" rel="popover" data-content="Users that can ask questions of the crowd are <b>Askers</b>. Users that can answer questions are <b>Answerers</b>." data-original-title="User Class" class="btn btn-mini">More info</a>
-    </div>
-    {% endif %}
-    
+  -->
+  {% if not is_answerer %}
+  <div class="span4">
+    <b>User Class:</b>
+    <h2> {% if is_answerer %} Answerer {% else %} Asker {% endif %} </h2>
+    <br />
+    <a href="#" rel="popover" data-content="Users that can ask questions of the crowd are <b>Askers</b>. Users that can answer questions are <b>Answerers</b>." data-original-title="User Class" class="btn btn-mini">More info</a>
   </div>
+  {% endif %}
+
+</div>
 </section>
-{% endblock content %} 
+{% endblock content %}
 
 {% block jquery %}
 
 <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 <script type="text/javascript">
-  $("#nav-user").addClass("active");
-  $("a[rel=popover]")
-  .popover({placement:'bottom'})
-  .click(function(e) {
+$("#nav-user").addClass("active");
+$("a[rel=popover]")
+.popover({placement:'bottom'})
+.click(function(e) {
   e.preventDefault()
-  })
+})
 </script>
 
 {% endblock jquery %}
