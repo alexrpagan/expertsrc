@@ -26,6 +26,9 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
+#Mac stuff
+.DS_Store
+
 # various files that my programs sometimes spit out
 *.out
 logs/
@@ -36,3 +39,6 @@ logs/
 *~
 usage.pickle*
 *.swp
+
+# settings
+settings.py
