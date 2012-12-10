@@ -1,7 +1,7 @@
 {% extends "expertsrc/base.html" %}
 
 {% block styles %}
-<link href="/static/css/d3.css" rel="stylesheet" />
+<link href="{{ STATIC_URL }}css/d3.css" rel="stylesheet" />
 {% endblock styles %}
 
 {% block title %}Expert worker overview{% endblock title %}
@@ -73,8 +73,8 @@
 <script type="text/javascript">
   $("#nav-domain").addClass("active");
 </script>
-<script type="text/javascript" src="/static/js/d3.js"></script>
-<script type="text/javascript" src="/static/js/availvis.js"></script>
-<script type="text/javascript" src="/static/js/pricevis.js"></script>
-<script type="text/javascript" src="/static/js/userhisto.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/d3.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/availvis.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/pricevis.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/userhisto.js"></script>
 {% endblock jquery %}

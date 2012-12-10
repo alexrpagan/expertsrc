@@ -62,16 +62,16 @@
     </div>
     <div id="spinner" class="spin span2">
     </div>
-    <a class="btn btn-primary pull-right" href="/tamer">Go to Data Tamer</a>
+    <a class="btn btn-primary pull-right" href="{% url redirect_to_tamer %}">Go to Data Tamer</a>
   </div>
 </div>
 
 {% endblock content %}
 
 {% block jquery %}
-<script type="text/javascript" src="/static/js/bootstrap.js"></script>
-<script type="text/javascript" src="/static/js/spin.min.js"></script>
-<script type="text/javascript" src="/static/js/user_batches.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/spin.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/user_batches.js"></script>
 
 <script type="text/javascript">
   $("#nav-batches").addClass("active");

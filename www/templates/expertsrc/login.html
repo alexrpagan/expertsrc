@@ -21,7 +21,7 @@
 
   <br />
 
-  <form action="/login/" method="POST" class="well form-inline">
+  <form action="{% url login %}" method="POST" class="well form-inline">
     {% csrf_token %}
     {% if next %}
     <input type="hidden" name="next" value="{{ next }}" />

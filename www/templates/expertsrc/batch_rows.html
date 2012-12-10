@@ -7,9 +7,9 @@
   <td>{% if b.is_allocated %} <i class="icon-search icon-ok"></i> {% else %} <i class="icon-search icon-remove"></i>{% endif %}</td>
   <td>
     {% if b.is_allocated %}
-    <a class="btn btn-mini" href="/batch/{{b.pk}}/overview">Overview</a>
+    <a class="btn btn-mini" href="{% url batch_overview b.pk %}">Overview</a>
     {% else %}
-    <a class="btn btn-mini" href="/batch/{{b.pk}}/allocate">Allocate</a>
+    <a class="btn btn-mini" href="{% url allocate_batch b.pk %}">Allocate</a>
     {% endif %}
   </td>
 </tr>

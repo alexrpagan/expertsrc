@@ -1,4 +1,5 @@
 from django.core.context_processors import csrf
+from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,17 +11,16 @@ from django.conf import settings
 from ui.workerstats.allocations import conf
 from ui.dbaccess import *
 from ui.models import *
-
 import csv
 import datetime
 import logging
-import random
 import dbaccess
-
 import ui.workerstats.allocations as allc
 import ui.pricing.dynprice as dp
 
+
 logger = logging.getLogger(__name__)
+
 
 def dict_to_json_response(response_dict):
     return HttpResponse(simplejson.dumps(response_dict), mimetype='application/json')
@@ -28,19 +28,18 @@ def dict_to_json_response(response_dict):
 
 def index(request):
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/user/')
+        return redirect('resolve_user')
     else:
-        return HttpResponseRedirect('/login/')
+        return redirect('login')
 
 
 def logout_user(request):
     logout(request)
-    return HttpResponseRedirect('/login/')
+    return redirect('login')
 
 
 def login_user(request):
     status = username = ''
-    # TODO: write login form class
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
@@ -49,9 +48,10 @@ def login_user(request):
             if user.is_active:
                 login(request, user)
                 if 'next' in request.POST:
+                    # make sure this works with prefix 
                     return HttpResponseRedirect(request.POST['next'])
                 else:
-                    return redirect('ui.views.implicit_overview')
+                    return redirect('resolve_user') 
             else:
                 status = 'Your account has been disabled.'
         else:
@@ -61,31 +61,30 @@ def login_user(request):
                               context_instance=RequestContext(request))
 
 
-@login_required
-def next_review(request):
-    """
-    TODO: get rid of this and replace it with something less awful.
-    """
-    user = request.user
-    jobs = user.get_review_jobs()
-    if(len(jobs) == 0):
-        return HttpResponseRedirect('/review/')
-    question_info = []
-    for job in jobs:
-        answer = job.answer.schemamapanswer
-        info = [answer.local_field_id, answer.global_attribute_id, answer.is_match]
-        question_info.append(':'.join([str(x) for x in info]))
-    redirect_base_url = '%s/doit/%s/fields/map?is_review=1&reviewer_id=%s&question_info=%s'
-    redirect_url = redirect_base_url % (settings.TAMER_URL, settings.TAMER_DB, user.id, ','.join(question_info))
-    return HttpResponseRedirect(redirect_url)
+#@login_required
+#def next_review(request):
+#    """
+#    TODO: get rid of this and replace it with something less awful.
+#    """
+#    user = request.user
+#    jobs = user.get_review_jobs()
+#    if(len(jobs) == 0):
+#        return HttpResponseRedirect('/review/')
+#    question_info = []
+#    for job in jobs:
+#        answer = job.answer.schemamapanswer
+#        info = [answer.local_field_id, answer.global_attribute_id, answer.is_match]
+#        question_info.append(':'.join([str(x) for x in info]))
+#    redirect_base_url = '%s/doit/%s/fields/map?is_review=1&reviewer_id=%s&question_info=%s'
+#    redirect_url = redirect_base_url % (settings.TAMER_URL, settings.TAMER_DB, user.id, ','.join(question_info))
+#    return HttpResponseRedirect(redirect_url)
 
 
-@login_required
-def review_home(request):
-    user = request.user
-    num_jobs = ReviewAssignment.objects.filter(reviewer=user, completed=False).count()
-    return render_to_response('expertsrc/review.html', locals())
-
+#@login_required
+#def review_home(request):
+#    user = request.user
+#    num_jobs = ReviewAssignment.objects.filter(reviewer=user, completed=False).count()
+#    return render_to_response('expertsrc/review.html', locals())
 
 @login_required
 def next_question(request, domain_id):
@@ -114,7 +113,7 @@ def next_question(request, domain_id):
                 redirect_url = model_class.get_gui_url(user.id, cands[:idx])
                 return HttpResponseRedirect(redirect_url)
     else:
-        return HttpResponseRedirect('/')
+        return redirect('index')
 
 
 @login_required
@@ -137,7 +136,7 @@ def answer_home(request):
             feedback.improvements = form.cleaned_data['improvements']
             feedback.comments = form.cleaned_data['comments']
             feedback.save()
-            return HttpResponseRedirect('/thanks')
+            return redirect('thanks')
         return render_to_response('expertsrc/answer.html', context)
     context['form'] = FeedbackForm()
     return render_to_response('expertsrc/answer.html', context)
@@ -160,14 +159,13 @@ def thanks_and_goodbye(request):
 
 @login_required
 def implicit_overview(request):
-    username = request.user.username
-    return HttpResponseRedirect('/user/name/%s/' % username)
+    return redirect('user_by_name', username=request.user.username)
 
 
 @login_required
 def overview_by_uid(request, uid):
     user = get_object_or_404(User, pk=uid)
-    return HttpResponseRedirect('/user/name/%s/' % user.username)
+    return redirect('user_by_name', username=user.username)
 
 
 #changeme
@@ -206,7 +204,7 @@ def update_profile(request, username):
             profile = form.save(commit=False)
             profile.user = user
             profile.save()
-    return HttpResponseRedirect('/user/name/%s/' % username)
+    return redirect('user_by_name', username=username)
 
 
 @login_required
@@ -219,7 +217,7 @@ def add_expertise(request, username):
             expertise.user = user.get_profile()
             expertise.domain = form.cleaned_data['domain']
             expertise.save()
-    return HttpResponseRedirect('/user/name/%s/' % username)
+    return redirect('user_by_name', username=username)
 
 
 @login_required
@@ -369,10 +367,6 @@ def commit_allocations(request):
 # deep-six import_schema_map_questions and import_schema_map_answers
 def import_schema_map_questions(request):
     return HttpResponseRedirect('/batches/?check')
-
-
-def import_schema_map_answers(request):
-    return HttpResponseRedirect('/')
 
 
 def about(request):

@@ -53,7 +53,7 @@
 	    </td>
         <td>
         {% if entry.num_pending > 0 %}
-            <a href="/answer/{{entry.domain_id}}/next_question" class="btn btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i></a>
+            <a href="{% url next_question entry.domain_id %}" class="btn btn-primary">Answer questions <i class="icon-search icon-white icon-chevron-right"></i></a>
         {% endif %}
         </td>
 	  </tr>
@@ -80,7 +80,7 @@
       <!--
       <br/>
       <h3>User Profile Info:</h3>
-      <form method="post" action="/user/{{ user.username }}/update_profile/">
+      <form method="post" action="{% url update_profile user.username %}">
 	{% csrf_token %}
 	{{ profile_form.non_field_errors }}
 	<div>
@@ -98,7 +98,7 @@
     {% if allow_add_domain %}
     <div class="span6">
       <h3>Add an area of expertise:</h3>
-      <form method="post" action="/user/{{ user.username }}/add_expertise/">
+      <form method="post" action="{% url add_expertise user.username %}">
 	{% csrf_token %}
 	{{ expertise_form.as_table }} <br/>
 	<input type="submit" value="Add" />
@@ -121,7 +121,7 @@
 
 {% block jquery %}
 
-<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 <script type="text/javascript">
   $("#nav-user").addClass("active");
   $("a[rel=popover]")

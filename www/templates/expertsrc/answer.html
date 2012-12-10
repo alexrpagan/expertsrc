@@ -3,7 +3,7 @@
 {% block title %}Answer questions{% endblock title %}
 
 {% block styles %}
-<link href="/static/css/answer.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}css/answer.css" rel="stylesheet">
 {% endblock styles %}
 
 {% block content %}
@@ -67,7 +67,7 @@
 {% endblock content %} 
 
 {% block jquery %}
-<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 <script type="text/javascript">
 
   $( function () {

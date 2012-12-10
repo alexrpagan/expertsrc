@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link href="/static/css/bootstrap.css" rel="stylesheet"/>
-    <link href="/static/css/base.css" rel="stylesheet"/>
+    <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet"/>
+    <link href="{{ STATIC_URL }}css/base.css" rel="stylesheet"/>
     {% block styles %}
     {% endblock styles %}
   </head>
@@ -20,41 +20,39 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="/">Expertsrc</a>
+          <a class="brand" href="{% url index %}">Expertsrc</a>
           <div class="nav-collapse">
-            <ul class="nav">
+          <ul class="nav">
 	      <!-- <li id="nav-about"><a href="/about">About</a></li> -->
 	      {% if user.username %}
-                 <li id="nav-user"><a href="/user">User HQ</a></li>
+            <li id="nav-user"><a href="{% url resolve_user %}">User HQ</a></li>
 
-		 {% if user.userprofile.user_class == "ASK" %}
-	         <li id="nav-batches"><a href="/batches">Question Batches</a></li>
-	         <li id="nav-overview"><a href="/user/overview">User Overview</a></li>
-             <li id="nav-domain"><a href="/domain">Domain Info</a></li>
-		 <!-- <li><a href="/review">Review</a></li> -->
-		 {% endif %}
+		    {% if user.userprofile.user_class == "ASK" %}
+	            <li id="nav-batches"><a href="{% url user_batches %}">Question Batches</a></li>
+	            <li id="nav-overview"><a href="{% url global_user_overview %}">User Overview</a></li>
+                <li id="nav-domain"><a href="{% url domain %}">Domain Info</a></li>
+		    {% endif %}
 	      {% endif %}
-            </ul>
-	    <ul class="nav pull-right">
-	      {% if user.username %}
-	      <li><a href="/user/">{{ user.username }}</a></li>
-	      <li><a href="/logout">Logout</a></li>
-	      {% else %}
-	      <li><a href="/login">Login</a></li>
-	      {% endif %}
-	    </ul>
+          </ul>
+          <ul class="nav pull-right">
+	         {% if user.username %}
+	            <li><a href="{% url resolve_user %}">{{ user.username }}</a></li>
+	            <li><a href="{% url logout %}">Logout</a></li>
+	         {% else %}
+	            <li><a href="{% url login %}">Login</a></li>
+	         {% endif %}
+	      </ul>
           </div><!--/.nav-collapse -->
         </div>
       </div>
     </div>
     <div class="container">
-     {% block content %}{% endblock content %}
+        {% block content %}{% endblock content %}
     </div>
    <!--[if lt IE 9]>
-      <script src="/static/js/html5.js"></script>
+      <script src="{{ STATIC_URL }}js/html5.js"></script>
     <![endif]-->
-
-    <script type="text/javascript" src="/static/js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.7.2.min.js"></script>
     {% block jquery %}{% endblock jquery %}
   </body>
 </html>

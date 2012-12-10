@@ -29,7 +29,7 @@
       <tr>
 	<td>{{domain.long_name}}</td>
 	<td>{{domain.description}}</td>
-	<td><a href="/domain/{{domain.id}}/">Details</a></td>
+	<td><a href="{% url domain_details domain.id %}">Details</a></td>
       </tr>
       {% endfor %}
     </tbody>

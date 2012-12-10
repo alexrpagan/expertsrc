@@ -1,7 +1,7 @@
 {% extends "expertsrc/base.html" %}
 
 {% block styles %} 
-<link rel="stylesheet" href="/static/css/base/jquery.ui.all.css" type="text/css" media="screen"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}css/base/jquery.ui.all.css" type="text/css" media="screen"/>
 <style type="text/css" media="screen">
 .spin {
     margin-bottom: 20px;
@@ -167,11 +167,11 @@
 {% endblock content %}
 
 {% block jquery %}
-<script type="text/javascript" src="/static/js/jquery.ui.core.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.ui.widget.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.ui.mouse.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.ui.slider.min.js"></script>
-<script type="text/javascript" src="/static/js/spin.min.js"></script>
-<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="/static/js/batch_panel.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.core.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.widget.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.mouse.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.slider.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/spin.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/batch_panel.js"></script>
 {% endblock jquery %}
