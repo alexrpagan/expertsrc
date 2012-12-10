@@ -1,11 +1,8 @@
-from django.core.context_processors import csrf
-from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.shortcuts import render_to_response, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect
-from django.template import RequestContext
 from django.utils import simplejson
 from django.conf import settings
 from ui.workerstats.allocations import conf
@@ -14,7 +11,6 @@ from ui.models import *
 import csv
 import datetime
 import logging
-import dbaccess
 import ui.workerstats.allocations as allc
 import ui.pricing.dynprice as dp
 
@@ -48,43 +44,16 @@ def login_user(request):
             if user.is_active:
                 login(request, user)
                 if 'next' in request.POST:
-                    # make sure this works with prefix 
+                    # make sure this works with prefix
                     return HttpResponseRedirect(request.POST['next'])
                 else:
-                    return redirect('resolve_user') 
+                    return redirect('resolve_user')
             else:
                 status = 'Your account has been disabled.'
         else:
             status = 'You entered an incorrect username or password.'
-    return render_to_response('expertsrc/login.html',
-                              {'msg':status, 'username':username},
-                              context_instance=RequestContext(request))
+    return render(request, 'expertsrc/login.html', {'msg': status, 'username': username})
 
-
-#@login_required
-#def next_review(request):
-#    """
-#    TODO: get rid of this and replace it with something less awful.
-#    """
-#    user = request.user
-#    jobs = user.get_review_jobs()
-#    if(len(jobs) == 0):
-#        return HttpResponseRedirect('/review/')
-#    question_info = []
-#    for job in jobs:
-#        answer = job.answer.schemamapanswer
-#        info = [answer.local_field_id, answer.global_attribute_id, answer.is_match]
-#        question_info.append(':'.join([str(x) for x in info]))
-#    redirect_base_url = '%s/doit/%s/fields/map?is_review=1&reviewer_id=%s&question_info=%s'
-#    redirect_url = redirect_base_url % (settings.TAMER_URL, settings.TAMER_DB, user.id, ','.join(question_info))
-#    return HttpResponseRedirect(redirect_url)
-
-
-#@login_required
-#def review_home(request):
-#    user = request.user
-#    num_jobs = ReviewAssignment.objects.filter(reviewer=user, completed=False).count()
-#    return render_to_response('expertsrc/review.html', locals())
 
 @login_required
 def next_question(request, domain_id):
@@ -125,6 +94,7 @@ def answer_home(request):
     context['user'] = user
     context['display_interview'] = 0
     if user.get_profile().has_been_assigned and num_questions == 0:
+# uncomment to get interview form
 #        context['display_interview'] = 1
         pass
     if request.method == 'POST':
@@ -137,9 +107,9 @@ def answer_home(request):
             feedback.comments = form.cleaned_data['comments']
             feedback.save()
             return redirect('thanks')
-        return render_to_response('expertsrc/answer.html', context)
+        return render(request, 'expertsrc/answer.html', context)
     context['form'] = FeedbackForm()
-    return render_to_response('expertsrc/answer.html', context)
+    return render(request, 'expertsrc/answer.html', context)
 
 
 @login_required
@@ -154,7 +124,7 @@ def thanks_and_goodbye(request):
     if disable_account:
         user.is_active = False
         user.save()
-    return render_to_response('expertsrc/thanks_and_goodbye.html')
+    return render(request, 'expertsrc/thanks_and_goodbye.html')
 
 
 @login_required
@@ -180,19 +150,18 @@ def overview(request, username):
     expertise_form = ExpertiseForm()
     expertise_form.fields["domain"].queryset = \
         Domain.objects.exclude(expertise__user__id__exact=user.get_profile().id)
-    full_up = expertise_form.fields["domain"].queryset.count() == 0
+#    full_up = expertise_form.fields["domain"].queryset.count() == 0
     c = {
-        'user':user,
-        'profile':user.get_profile(),
+        'user': user,
+        'profile': user.get_profile(),
         'is_answerer': is_answerer,
         'allow_add_domain': False,
 #        'allow_add_domain': is_answerer and not full_up,
-        'profile_form':profile_form,
-        'expertise_form':expertise_form,
-        'overview':overview,
+        'profile_form': profile_form,
+        'expertise_form': expertise_form,
+        'overview': overview,
     }
-    return render_to_response('expertsrc/userhq.html', c,
-                              context_instance=RequestContext(request))
+    return render(request, 'expertsrc/userhq.html', c)
 
 
 @login_required
@@ -226,8 +195,7 @@ def user_batches(request):
     is_answerer = user.get_profile().user_class == 'ANS'
     if is_answerer:
         messages.error(request, 'You are not an asker!')
-        return render_to_response('expertsrc/user_batches.html',
-                                  context_instance=RequestContext(request))
+        return render(request, 'expertsrc/user_batches.html')
     batches = list(Batch.objects.filter(owner=user).order_by('-create_time'))
     check = False
     if 'check' in request.GET:
@@ -236,9 +204,8 @@ def user_batches(request):
         most_recent = batches[0]
     else:
         messages.error(request, 'You have not imported any batches from Data Tamer.')
-    c=locals()
-    return render_to_response('expertsrc/user_batches.html', c,
-                              context_instance=RequestContext(request))
+    c = locals()
+    return render(request, 'expertsrc/user_batches.html', c)
 
 
 @login_required
@@ -250,7 +217,7 @@ def batch_panel(request, batch_id):
     questions = QuestionModel.objects.filter(batch=batch)
     profile = user.get_profile()
     c = locals()
-    return render_to_response('expertsrc/batch_panel.html', c, context_instance=RequestContext(request))
+    return render(request, 'expertsrc/batch_panel.html', c)
 
 
 @login_required
@@ -262,13 +229,13 @@ def check_for_new_batches(request):
             owner = User.objects.get(pk=int(uid))
             if most_recent:
                 most_recent_dt = datetime.datetime.strptime(most_recent, "%Y-%m-%dT%H:%M:%S.%f")
-                batches = list(Batch.objects.filter(create_time__gt=most_recent_dt,owner=owner).order_by('create_time'))
+                batches = list(Batch.objects.filter(create_time__gt=most_recent_dt, owner=owner).order_by('create_time'))
             else:
                 batches = list(Batch.objects.filter(owner=owner).order_by('create_time'))
             if len(batches) == 0:
                 return HttpResponse('None')
             c = locals()
-            return render_to_response('expertsrc/batch_rows.html', c)
+            return render(request, 'expertsrc/batch_rows.html', c)
 
 
 @login_required
@@ -330,7 +297,7 @@ def commit_allocations(request):
                 user.pay_out(batch, float(price))
             except InsufficientFundsException as e:
                 response['status'] = 'failure'
-                response['msg'] = str(e) # TODO: change this.
+                response['msg'] = str(e)  # TODO: change this.
                 return dict_to_json_response(response)
             for x in range(len(question_ids)):
                 q = BaseQuestion.objects.get(pk=int(question_ids[x]))
@@ -352,7 +319,7 @@ def commit_allocations(request):
             # TODO: get rid of this.
             assert domain_id is not None
             if settings.LOG_MARKET_STATS:
-                log_market_stats(domain_id)    
+                log_market_stats(domain_id)
             if settings.DYNPRICING:
                 # update prices in level records
                 dp.update_prices()
@@ -363,8 +330,6 @@ def commit_allocations(request):
             return dict_to_json_response(response)
 
 
-# TODO:
-# deep-six import_schema_map_questions and import_schema_map_answers
 def import_schema_map_questions(request):
     return HttpResponseRedirect('/batches/?check')
 
@@ -372,7 +337,7 @@ def import_schema_map_questions(request):
 def about(request):
     user = request.user
     c = locals()
-    return render_to_response('expertsrc/about.html', c)
+    return render(request, 'expertsrc/about.html', c)
 
 
 def redirect_to_tamer(request):
@@ -383,7 +348,7 @@ def global_user_overview(request):
     user = request.user
     overview = get_global_user_overview()
     c = locals()
-    return render_to_response('expertsrc/user_overview.html' , c)
+    return render(request, 'expertsrc/user_overview.html' , c)
 
 
 def batch_overview(request, batch_id):
@@ -400,7 +365,7 @@ def batch_overview(request, batch_id):
         new_rec['price'] = record['total_price']
         overview.append(new_rec)
     c = locals()
-    return render_to_response('expertsrc/batch_overview.html', c)
+    return render(request, 'expertsrc/batch_overview.html', c)
 
 
 @login_required
@@ -408,7 +373,7 @@ def domain_overview(request):
     user = request.user
     domains = Domain.objects.all()
     c = locals()
-    return render_to_response('expertsrc/domain_overview.html', c)
+    return render(request, 'expertsrc/domain_overview.html', c)
 
 
 @login_required
@@ -418,7 +383,7 @@ def domain_details(request, domain_id):
     overview = get_user_overview(domain_id)
     acc_data = ','.join([str(o['accuracy']) for o in overview])
     c = locals()
-    return render_to_response('expertsrc/domain_details.html', c)
+    return render(request, 'expertsrc/domain_details.html', c)
 
 
 def avail_data(request, domain_id):
@@ -428,7 +393,7 @@ def avail_data(request, domain_id):
     avail_raw = get_avail_data(domain_id)
     for row in avail_raw:
         writer.writerow(row)
-    return response 
+    return response
 
 
 def price_data(request, domain_id):
@@ -439,4 +404,3 @@ def price_data(request, domain_id):
     for row in price_raw:
         writer.writerow(row)
     return response
-
