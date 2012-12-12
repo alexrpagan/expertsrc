@@ -4,6 +4,9 @@ from django.conf import settings
 # from django.contrib import admin
 # admin.autodiscover()
 
+if settings.ALT_ROOT:
+    alt_root = ''.join([settings.ALT_ROOT, '/'])
+
 urlpatterns = patterns('',
-    (r'%s' % settings.ALT_ROOT, include('ui.urls')),
+    (r'%s' % alt_root, include('ui.urls')),
 )
