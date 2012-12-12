@@ -18,4 +18,4 @@ def url_context(request):
     if settings.ALT_ROOT:
         alt_root = ''.join(('/', settings.ALT_ROOT,))
     return { 'base_url': settings.BASE_URL,
-             'alt_root': settings.ALT_ROOT }
+             'alt_root': alt_root }
