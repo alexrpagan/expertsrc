@@ -76,7 +76,7 @@ $(function() {
         $("#get-allocs").text("Loading...");
         $('#spinner').html(spinner.el);
         $.post(
-            '/batch/get_allocation_suggestions/',
+            url_get_allocation_suggestions,
             {
                 alg_type : alg_type,
                 batch_id : batch_id,
@@ -139,7 +139,7 @@ $(function() {
         $('#status').show('slow').html('Committing allocations...');
 
         $.post(
-            '/batch/commit_allocations/',
+            url_commit_allocations,
             {
                 batch_id : batch_id,
                 question_ids : question_ids,

@@ -32,7 +32,7 @@ $(function() {
             setTimeout( function () {
             var most_recent_ts = $('input[name=most_recent]').val();
                 $.ajax({
-                    url: '/batch/check_new/',
+                    url: url_check_for_new_batches,
                     success: function(data){
                         if(data == 'None'){
                             if(num_attempts < max_attempts){

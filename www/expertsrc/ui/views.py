@@ -1,18 +1,22 @@
+import csv
+import datetime
+import logging
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404, render
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import simplejson
 from django.conf import settings
+
 from ui.workerstats.allocations import conf
-from ui.dbaccess import *
-from ui.models import *
-import csv
-import datetime
-import logging
 import ui.workerstats.allocations as allc
 import ui.pricing.dynprice as dp
+
+from ui.dbaccess import *
+from ui.models import *
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +36,16 @@ def index(request):
 def logout_user(request):
     logout(request)
     return redirect('login')
+
+
+def expose_urls(urllist):
+    ret = []
+    for u in urllist:
+        if isinstance(u, str):
+            ret.append((u, reverse(u)))
+        elif isinstance(u, (list, tuple)):
+            ret.append((u[0], reverse(u, args=u[1])))
+    return ret
 
 
 def login_user(request):
@@ -200,11 +214,15 @@ def user_batches(request):
     check = False
     if 'check' in request.GET:
         check = True
-    if batches:
-        most_recent = batches[0]
-    else:
+    if not batches:
         messages.error(request, 'You have not imported any batches from Data Tamer.')
-    c = locals()
+    url_context = expose_urls(('check_for_new_batches',))
+    c = {
+        'user': user,
+        'check': check,
+        'batches': batches,
+        'url_context': url_context
+    }
     return render(request, 'expertsrc/user_batches.html', c)
 
 
@@ -216,7 +234,14 @@ def batch_panel(request, batch_id):
     QuestionModel = batch.question_type.question_class.model_class()
     questions = QuestionModel.objects.filter(batch=batch)
     profile = user.get_profile()
-    c = locals()
+    url_context = expose_urls(('get_allocation_suggestions', 'commit_allocations',))
+    c = {
+        'user': user,
+        'batch': batch,
+        'profile': profile,
+        'questions': questions,
+        'url_context': url_context
+    }
     return render(request, 'expertsrc/batch_panel.html', c)
 
 
@@ -234,7 +259,7 @@ def check_for_new_batches(request):
                 batches = list(Batch.objects.filter(owner=owner).order_by('create_time'))
             if len(batches) == 0:
                 return HttpResponse('None')
-            c = locals()
+            c = {'batches': batches}
             return render(request, 'expertsrc/batch_rows.html', c)
 
 
@@ -243,7 +268,7 @@ def get_allocation_suggestions(request):
     response = {}
     if request.is_ajax():
         if request.method == 'POST':
-            batch = get_object_or_404(Batch, pk=request.POST['batch_id'])
+            get_object_or_404(Batch, pk=request.POST['batch_id'])
             alg_type = request.POST.get('alg_type')
             domain_id = request.POST.get('domain_id')
             question_ids = request.POST.getlist('question_ids[]')
@@ -336,7 +361,7 @@ def import_schema_map_questions(request):
 
 def about(request):
     user = request.user
-    c = locals()
+    c = {'user': user}
     return render(request, 'expertsrc/about.html', c)
 
 
@@ -347,8 +372,8 @@ def redirect_to_tamer(request):
 def global_user_overview(request):
     user = request.user
     overview = get_global_user_overview()
-    c = locals()
-    return render(request, 'expertsrc/user_overview.html' , c)
+    c = {'user': user, 'overview': overview}
+    return render(request, 'expertsrc/user_overview.html', c)
 
 
 def batch_overview(request, batch_id):
@@ -364,7 +389,11 @@ def batch_overview(request, batch_id):
         new_rec['confidence'] = conf(record['user_confs'])
         new_rec['price'] = record['total_price']
         overview.append(new_rec)
-    c = locals()
+    c = {
+        'user': user,
+        'batch': batch,
+        'overview': overview
+    }
     return render(request, 'expertsrc/batch_overview.html', c)
 
 
@@ -372,7 +401,10 @@ def batch_overview(request, batch_id):
 def domain_overview(request):
     user = request.user
     domains = Domain.objects.all()
-    c = locals()
+    c = {
+        'user': user,
+        'domains': domains
+    }
     return render(request, 'expertsrc/domain_overview.html', c)
 
 
@@ -382,7 +414,12 @@ def domain_details(request, domain_id):
     domain = get_object_or_404(Domain, pk=domain_id)
     overview = get_user_overview(domain_id)
     acc_data = ','.join([str(o['accuracy']) for o in overview])
-    c = locals()
+    c = {
+        'user': user,
+        'domain': domain,
+        'overview': overview,
+        'acc_data': acc_data
+    }
     return render(request, 'expertsrc/domain_details.html', c)
 
 
