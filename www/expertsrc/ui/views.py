@@ -234,7 +234,9 @@ def batch_panel(request, batch_id):
     QuestionModel = batch.question_type.question_class.model_class()
     questions = QuestionModel.objects.filter(batch=batch)
     profile = user.get_profile()
-    url_context = expose_urls(('get_allocation_suggestions', 'commit_allocations',))
+    url_context = expose_urls(('get_allocation_suggestions', 
+                               'commit_allocations', 
+                               'user_batches'))
     c = {
         'user': user,
         'batch': batch,
@@ -356,7 +358,7 @@ def commit_allocations(request):
 
 
 def import_schema_map_questions(request):
-    return HttpResponseRedirect('/batches/?check')
+    return HttpResponseRedirect('%s?check' % reverse('user_batches'))
 
 
 def about(request):

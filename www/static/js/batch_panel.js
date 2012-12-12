@@ -155,7 +155,7 @@ $(function() {
                     $('#status').attr('class', 'alert alert-success');
                     $('#commit-allocs').attr('disabled', 'disabled');
                     setTimeout(function() {
-                        window.location = '/batches';
+                        window.location = url_user_batches;
                     }, 2000);
                 } else {
                     $('#status').attr('class', 'alert alert-error');
