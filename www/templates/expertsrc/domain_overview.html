@@ -8,45 +8,44 @@
 {% block content %}
 <div id="domain-overview" class="content">
 
-  <div>
-    <h1>Domain Overview</h1>
-    <br />
-    <p class="lead">Get more information about domains.</p>
-  </div>
+    <div>
+        <h1>Domain Overview</h1>
+        <br />
+        <p class="lead">Get more information about domains.</p>
+    </div>
 
-  <section id="overview">
-    {% if domains %}
-    <table class="table">
-      <thead>
-        <tr>
-         <th>Name</th>
-         <th>Description</th>
-         <th>More Info...</th>
-       </tr>
-     </thead>
-     <tbody>
-      {% for domain in domains %}
-      <tr>
-       <td>{{domain.long_name}}</td>
-       <td>{{domain.description}}</td>
-       <td><a href="{% url domain_details domain.id %}">Details</a></td>
-     </tr>
-     {% endfor %}
-   </tbody>
- </table>
- {% else %}
- <p>
-  There are no domains registered in the system.
-</p>
-
-{% endif %}
-</section>
+    <section id="overview">
+        {% if domains %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>More Info...</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for domain in domains %}
+                <tr>
+                    <td>{{domain.long_name}}</td>
+                    <td>{{domain.description}}</td>
+                    <td><a href="{% url domain_details domain.id %}">Details</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>
+            There are no domains registered in the system.
+        </p>
+        {% endif %}
+    </section>
 
 {% endblock content %}
 
 
 {% block jquery %}
 <script type="text/javascript">
-$("#nav-domain").addClass("active");
+    $(".nav-domain").each(function(){$(this).addClass("active")});
 </script>
 {% endblock jquery %}

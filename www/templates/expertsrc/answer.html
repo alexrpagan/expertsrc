@@ -8,90 +8,88 @@
 
 {% block content %}
 <div class="content">
-  <h1>Answer questions</h1>
-  <br/>
-  <p class="lead">You have <b>{{ num_questions }}</b> pending question{%if num_questions != 1 %}s{% endif %}.</p>
-  {% if num_questions > 0 %}
-  <a href="/answer/next_question" class="btn btn-primary btn-large">Start answering <i class="icon-search icon-white icon-chevron-right"></i></a>
-  {% endif %}
-  <div id="exit-interview" class="modal hide fade">
-    <form id="exit-interview-form" action="/answer/" method="post">
-      <div class="modal-header">
-        <h3>Exit Interview</h3>
-      </div>
-      <div class="modal-body">
-        <div class="answer-form">
-         <p class="lead">
-           Congratulations, you're done mapping!
-         </p>
-         <p>
-           Please take a moment to give feedback about your experience so that we can improve Expertsrc and Data Tamer.
-         </p>
-         <hr />
+    <h1>Answer questions</h1>
+    <br/>
+    <p class="lead">You have <b>{{ num_questions }}</b> pending question{%if num_questions != 1 %}s{% endif %}.</p>
+    {% if num_questions > 0 %}
+        <a href="/answer/next_question" class="btn btn-primary btn-large">Start answering <i class="icon-search icon-white icon-chevron-right"></i></a>
+    {% endif %}
+    <div id="exit-interview" class="modal hide fade">
+        <form id="exit-interview-form" action="/answer/" method="post">
+            <div class="modal-header">
+                <h3>Exit Interview</h3>
+            </div>
+            <div class="modal-body">
+                <div class="answer-form">
+                    <p class="lead">
+                        Congratulations, you're done mapping!
+                    </p>
+                    <p>
+                        Please take a moment to give feedback about your experience so that we can improve Expertsrc and Data Tamer.
+                    </p>
+                    <hr />
 
-         {{ form.non_field_errors }}
+                    {{ form.non_field_errors }}
 
-         <div class="question fieldWrapper">
-           <p>
-             <label for="id_sentiment"> Please characterize your experience: </label>
-           </p>
-           {{ form.sentiment.errors }}
-           {{ form.sentiment }}
-         </div>
+                    <div class="question fieldWrapper">
+                        <p>
+                            <label for="id_sentiment"> Please characterize your experience: </label>
+                        </p>
+                        {{ form.sentiment.errors }}
+                        {{ form.sentiment }}
+                    </div>
 
-         <div class="question fieldWrapper">
-           <p>
-             <label for="id_improvements"> Which aspects of the user interface need improvement?</label>
-             <small>e.g. software bugs, confusing/cumbersome features, documentation...</small>
-           </p>
-           {{ form.improvements.errors }}
-           {{ form.improvements }}
-         </div>
+                    <div class="question fieldWrapper">
+                        <p>
+                            <label for="id_improvements"> Which aspects of the user interface need improvement?</label>
+                            <small>e.g. software bugs, confusing/cumbersome features, documentation...</small>
+                        </p>
+                        {{ form.improvements.errors }}
+                        {{ form.improvements }}
+                    </div>
 
-         <div class="question fieldWrappers">
-           <p>
-             <label for="id_comments"> Additional comments: </label>
-           </p>
-           {{ form.comments.errors }}
-           {{ form.comments }}
-         </div>
-       </div>
-
-     </div>
-   </form>
-   <div class="modal-footer">
-    <a id="save-response" href="#" class="btn btn-primary">Save Response</a>
-  </div>
+                    <div class="question fieldWrappers">
+                        <p>
+                            <label for="id_comments"> Additional comments: </label>
+                        </p>
+                        {{ form.comments.errors }}
+                        {{ form.comments }}
+                    </div>
+                </div>
+            </div>
+        </form>
+    <div class="modal-footer">
+        <a id="save-response" href="#" class="btn btn-primary">Save Response</a>
+    </div>
 </div>
 </div>
 {% endblock content %}
 
 {% block jquery %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 <script type="text/javascript">
 
 $( function () {
 
-  $("#nav-answer").addClass("active");
+    $(".nav-answer").each(function(){$(this).addClass("active")});
 
-  $("#save-response").click(function() {
-    $('#exit-interview-form').submit();
-  });
-
-  $("textarea").each(
-    function() {
-     $(this).attr('rows', 2).focus(function () {
-      $(this).attr('rows', 4);
-    }).focusout(function() {
-      $(this).attr('rows', 2);
+    $("#save-response").click(function() {
+        $('#exit-interview-form').submit();
     });
-  });
 
-  if({{ display_interview }}){
-   $("#exit-interview").modal({
-     backdrop: 'static'
-   });
- }
+    $("textarea").each(
+        function() {
+        $(this).attr('rows', 2).focus(function () {
+            $(this).attr('rows', 4);
+        }).focusout(function() {
+            $(this).attr('rows', 2);
+        });
+    });
+
+    if({{ display_interview }}){
+        $("#exit-interview").modal({
+            backdrop: 'static'
+        });
+    }
 
 });
 

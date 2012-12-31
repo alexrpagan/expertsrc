@@ -2,15 +2,15 @@
 
 {% block styles %}
 <style type="text/css" media="screen">
-.spin {
-  margin-bottom: 20px;
-  min-height: 20px;
-  padding: 19px;
-}
-.info {
-  margin-left: 30px;
-  margin-bottom: 30px;
-}
+    .spin {
+        margin-bottom: 20px;
+        min-height: 20px;
+        padding: 19px;
+    }
+    .info {
+        margin-left: 30px;
+        margin-bottom: 30px;
+    }
 </style>
 {% endblock styles %}
 
@@ -20,61 +20,60 @@
 
 {% block content %}
 <div class="content">
-  <h1>Imported questions</h1>
-  <input type="hidden" name="num_batches" value="{{ batches|length }}" />
-  <input type="hidden" name="uid" value="{{ user.pk }}" />
-  <input type="hidden" name="check" value="{{ check }}" />
-  <br />
-  <div class="row">
-    <div class="span8">
-      <p class="lead">
-       Manage question batches imported from Data Tamer.
-     </p>
-   </div>
- </div>
- <div class="row">
-  {% if messages %}
-  {% for message in messages %}
-  <div class="alert span4 info">
-    {{ message }}
-  </div>
-  {% endfor %}
-  {% endif %}
-</div>
-<table id="batches" class="table" {% if not batches %} style="display:none;" {% endif %}>
-  <thead>
-    <tr>
-     <th>Time created</th>
-     <th>Data source name</th>
-     <th>Question type</th>
-     <th>Is allocated?</th>
-     <th></th>
-   </tr>
- </thead>
- <tbody>
-  {% include "expertsrc/batch_rows.html" %}
-</tbody>
-</table>
-<br />
-<hr />
-<div class="row">
-  <div id="status" class="alert alert-info span2" style="display:none;">
-  </div>
-  <div id="spinner" class="spin span2">
-  </div>
-  <a class="btn btn-primary pull-right" href="{% url redirect_to_tamer %}">Go to Data Tamer</a>
-</div>
+    <input type="hidden" name="num_batches" value="{{ batches|length }}" />
+    <input type="hidden" name="uid" value="{{ user.pk }}" />
+    <input type="hidden" name="check" value="{{ check }}" />
+    <div>
+        <div class="row">
+            <h1>Imported questions</h1>
+            <br />
+            <p class="lead">
+                Manage question batches imported from Data Tamer.
+            </p>
+        </div>
+
+        <div class="row">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert span12 info">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        </div>
+
+        <div class="row">
+            <table id="batches" class="table" {% if not batches %} style="display:none;" {% endif %}>
+                <thead>
+                    <tr>
+                        <th>Time created</th>
+                        <th>Data source name</th>
+                        <th>Question type</th>
+                        <th>Is allocated?</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% include "expertsrc/batch_rows.html" %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row">
+            <div id="status" class="alert alert-info span4" style="display:none;">
+            </div>
+            <div id="spinner" class="spin span2">
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock content %}
 
 {% block jquery %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/spin.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/user_batches.js"></script>
-
 <script type="text/javascript">
-$("#nav-batches").addClass("active");
+    $(".nav-batches").each(function(){$(this).addClass("active")});
 </script>
-
 {% endblock jquery %}

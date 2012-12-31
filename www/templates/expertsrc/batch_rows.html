@@ -1,16 +1,16 @@
 {% for b in batches %}
 <tr id="{{ b.pk }}">
-  <input type="hidden" name="most_recent" value="{{b.create_time|date:"c"}}" />
-  <td>{{ b.create_time }}</td>
-  <td>{{ b.source_name }}</td>
-  <td>{{ b.question_type.short_name }}</td>
-  <td>{% if b.is_allocated %} <i class="icon-search icon-ok"></i> {% else %} <i class="icon-search icon-remove"></i>{% endif %}</td>
-  <td>
-    {% if b.is_allocated %}
-    <a class="btn btn-mini" href="{% url batch_overview b.pk %}">Overview</a>
-    {% else %}
-    <a class="btn btn-mini" href="{% url allocate_batch b.pk %}">Allocate</a>
-    {% endif %}
-  </td>
+    <input type="hidden" name="most_recent" value="{{b.create_time|date:"c"}}" />
+    <td>{{ b.create_time }}</td>
+    <td>{{ b.source_name }}</td>
+    <td>{{ b.question_type.short_name }}</td>
+    <td>{% if b.is_allocated %} <i class="icon-search icon-ok"></i> {% else %} <i class="icon-search icon-remove"></i>{% endif %}</td>
+    <td>
+        {% if b.is_allocated %}
+        <a class="btn btn-mini" href="{% url batch_overview b.pk %}">Overview</a>
+        {% else %}
+        <a class="btn btn-mini" href="{% url allocate_batch b.pk %}">Allocate</a>
+        {% endif %}
+    </td>
 </tr>
 {% endfor %}

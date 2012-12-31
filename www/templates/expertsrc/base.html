@@ -1,18 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <title>{% block title %}Expert Sourcing{% endblock title %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="">
         <meta name="author" content="">
-        <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet"/>
+        <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet"/>
+        <link href="{{ STATIC_URL }}css/bootstrap-responsive.min.css" rel="stylesheet"/>
         <link href="{{ STATIC_URL }}css/base.css" rel="stylesheet"/>
+        <style type="text/css">
+            @media (min-width: 980px) {
+                body {
+                    background: url({{ STATIC_URL }}img/background.gif) repeat-y 0 0;
+                }
+                .left-container {
+                    margin-top: 55px;
+                }
+                .content {
+                    width: 85%;
+                    margin: 0 auto;
+                    margin-right:70px;
+                    margin-top: 55px;
+                }
+            }
+        </style>
+
         {% block styles %}
         {% endblock styles %}
     </head>
     <body>
-        <div class="navbar navbar-fixed-top">
+        <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
                     <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -20,19 +38,21 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </a>
-                    <a class="brand" href="{% url index %}">Expertsrc</a>
+                    <a class="brand" href="{% url index %}">Data Tamer</a>
                     <div class="nav-collapse">
-                        <ul class="nav">
-                            <!-- <li id="nav-about"><a href="/about">About</a></li> -->
-                        {% if user.username %}
-                            <li id="nav-user"><a href="{% url resolve_user %}">User HQ</a></li>
-
+                        <ul id="main-nav" class="nav hidden-desktop">
+                            <li class="nav-about"><a href="{% url about %}">About</a></li>
+                            {% if user.username %}
+                            <li class="nav-user"><a href="{% url resolve_user %}">Your Profile</a></li>
                             {% if user.userprofile.user_class == "ASK" %}
-                            <li id="nav-batches"><a href="{% url user_batches %}">Question Batches</a></li>
-                            <li id="nav-overview"><a href="{% url global_user_overview %}">User Overview</a></li>
-                            <li id="nav-domain"><a href="{% url domain %}">Domain Info</a></li>
+                            <li class="divider"></li>
+                            <li class="nav-batches"><a href="{% url user_batches %}">Question Batches</a></li>
+                            <li class="nav-overview"><a href="{% url global_user_overview %}">User Overview</a></li>
+                            <li class="nav-domain"><a href="{% url domain %}">Domain Info</a></li>
+                            <li class="divider"></li>
+                            <li class="nav-datasources"><a href="{% url redirect_to_tamer %}">Manage Data Sources</a></li>
                             {% endif %}
-                        {% endif %}
+                            {% endif %}
                         </ul>
                         <ul class="nav pull-right">
                             {% if user.username %}
@@ -46,19 +66,58 @@
                 </div>
             </div>
         </div>
-        <div class="container">
-        {% block content %}{% endblock content %}
+        <div class="wrap">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div id="sidenav-container" class="span2 left-container hidden-phone hidden-tablet ">
+                        <div>
+                            <!-- <img class="crowd-logo" src="{{ STATIC_URL }}img/crowd-silhouette.jpg"> -->
+                            <p class="crowd-brand"><h5>Crowd Market</h5></p>
+                        </div>
+                    </div>
+                    <div class="span10 pull-right">
+                        {% block content %}{% endblock content %}
+                    </div>
+                </div>
+            </div>
         </div>
+<!--         <div class="navbar navbar-fixed-bottom navbar-static-bottom">
+            <div class="navbar-inner">
+                <div class="container">
+                    <div class="row">
+                        <p class="muted pull-right fine-print"> Important stuff goes here.</p>
+                    </div>
+                </div>
+            </div>
+        </div> -->
         <!--[if lt IE 9]>
         <script src="{{ STATIC_URL }}js/html5.js"></script>
         <![endif]-->
         <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+        <script type="text/javascript">
+            var $window = $(window);
+
+            $('#main-nav')
+                .clone()
+                .attr('id', '')
+                .removeClass()
+                .addClass('sidenav nav nav-list nav-stacked')
+                .appendTo('#sidenav-container');
+
+            $('#sidenav-container').affix({
+                offset: {
+                    top: 0, bottom: 270
+                }
+            });
+
+        </script>
         {% block jquery %}{% endblock jquery %}
         {% if url_context %}
         <script type="text/javascript">
-        {% for url in url_context %}
+            {% for url in url_context %}
             var url_{{url.0}} = "{{url.1}}";
-        {% endfor %}
+            {% endfor %}
         </script>
         {% endif %}
     </body>

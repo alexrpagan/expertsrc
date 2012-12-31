@@ -2,29 +2,35 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_URL }}css/base/jquery.ui.all.css" type="text/css" media="screen"/>
-<style type="text/css" media="screen">
-.spin {
-    margin-bottom: 20px;
-    min-height: 20px;
-    padding: 19px;
-}
-.button-row {
-   padding:20px;
-   padding-top:40px;
-}
-.centered {
-  text-align: center;
-}
-.option-block {
-  margin-bottom:15px;
-}
-.msg-box {
-  position:absolute;
-  margin: 0px auto;
-  bottom:0;
-}
-
-</style>
+    <style type="text/css" media="screen">
+        .spin {
+            margin-left:15px;
+            margin-bottom: 15px;
+            min-height: 15px;
+            padding: 15px;
+        }
+        .button-row {
+            padding:20px;
+            padding-top:40px;
+        }
+        .centered {
+            text-align: center;
+        }
+        .option-block {
+            margin-bottom:15px;
+        }
+        .msg-box {
+            position:absolute;
+            margin: 0px auto;
+            bottom:20px;
+        }
+        .options {
+            margin-left:5%;
+        }
+        #commit-allocs {
+            margin-top:20px;
+        }
+    </style>
 {% endblock styles %}
 
 {% block title %}Select workers{% endblock title %}
@@ -37,141 +43,156 @@
 <input type="hidden" id="bank_balance" value="{{profile.bank_balance}}" />
 
 <div class="content">
-  <div class="row">
+
     <div>
-      <h2>Select Workers</h2>
-  </div>
-</div>
-<hr />
-<div class="row">
 
-    <div class="row span8 option-block">
-      <p class="lead">
-         <b>Step 1:</b> Select a method for allocating crowd workers. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
-     </p>
-     <div class="options span6">
-         <p id="maxconf-container">
-           <input id="max_conf" type="radio" name="alg-type" value="max_conf"> - <b>Maximize Confidence</b>
-       </p>
-       <p id="minprice-container">
-           <input id="min_price" type="radio" name="alg-type" value="min_price" /> - <b>Minimize Cumulative Price</b>
-       </p>
-   </div>
-   <div>
-     <a href="#" class="btn btn-large btn-primary" onclick="$('#constraint-panel').show();$(this).hide();"> OK </a>
- </div>
-</div>
+        <div class="row">
+            <div>
+                <h2>Select Workers</h2>
+            </div>
+        </div>
 
-<div class="row span8 option-block">
-  <hr />
-  <p class="lead">
-     <b>Step 2:</b> Select <span id="constraint" name="constraint">price</span>  requirements. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
- </p>
+        <hr />
 
- <div class="options row hide" id="constraint-panel">
-   <div class="span4">
-       <div class="row row-fluid span10" style="margin-top:20px;">
-         <div class="span6"><a id="get-allocs" class="btn btn-primary btn-large">Get Suggestions</a></div>
-         <div id="spinner" class="spin span3 pull-right"></div>
-     </div>
- </div>
+        <div class="row">
 
- <div class="span4">
-   <form action="#">
-     <div class="row-fluid" id="conf-slider-row">
-       <div class="control-group">
-          <div class="controls">
-            <p>
-              <b>Confidence </b> <i class="icon-search icon-chevron-right"></i> <span id="confidence" class="lead"></span>
-          </p>
-      </div>
-      <div class="span8">
-          <div id="confidence-slider">
-          </div>
-      </div>
-  </div>
-</div>
-<div class="row-fluid" id="price-slider-row">
-  <div class="control-group">
-    <div class="controls">
-      <p>
-        <b>Cumulative Price </b> <i class="icon-search icon-chevron-left"></i> <span id="price" class="lead"></span>
-    </p>
-</div>
-<div class="span8">
-  <div id="price-slider"></div>
-</div>
-</div>
-</div>
-</form>
-</div>
-<br/>
-<hr />
-<br/>
-</div>
-</div>
+            <div class="row option-block">
+                <p class="lead">
+                    <b>Step 1:</b> Select a method for allocating crowd workers. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
+                </p>
+                <div class="options">
+                    <p id="maxconf-container">
+                        <input id="max_conf" type="radio" name="alg-type" value="max_conf"> - <b>Maximize Confidence</b>
+                    </p>
+                    <p id="minprice-container">
+                        <input id="min_price" type="radio" name="alg-type" value="min_price" /> - <b>Minimize Cumulative Price</b>
+                    </p>
+                </div>
+                <div class="options">
+                    <br/>
+                    <a href="#" class="btn btn-primary" onclick="$('#constraint-panel').show();$(this).hide();"> OK </a>
+                </div>
+            </div>
 
-<div class="row span8 option-block">
-	<hr />
-	<p class="lead">
-       <b>Step 3:</b> Review and confirm suggestions. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
-   </p>
+            <div class="row option-block">
+                <hr />
+                <p class="lead">
+                    <b>Step 2:</b> Select <span id="constraint" name="constraint">price</span>  requirements. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
+                </p>
 
-   <div class="options row row-fluid hide span8" id="alloc-stats">
-       <div class="span6">
-         <div class="span8">
-           <h2>Allocation Stats</h2>
-           <br />
-           <p>
-              <span><strong>Average Confidence:</strong><span id="average-confidence" class="pull-right"></span></span>
-          </p>
-          <p>
-              <span><strong>Cumulative Price:</strong><span id="cumulative-price" class="pull-right"></span></span>
-          </p>
-          <br />
-          <a class="btn" id="show-suggs" href="#"  data-toggle="">See suggestions <i class="icon-search icon-plus"></i></a>
-          <br />
-          <br />
-      </div>
-  </div>
-  <br />
-  <div class="row">
-     <div id="questions" class="hide">
-       <div class="row"><a id="commit-allocs" class="btn btn-success btn-large">Approve</a></div>
-       <table class="table hide" id="details-table">
-          <thead>
-              <tr>
-                <th>Local Field Name</th>
-                <!--<th>Allocation details</th>-->
-                <th>Number of workers</th>
-                <th>Expected confidence</th>
-                <th>Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% include "expertsrc/allocation_rows.html" %}
-        </tbody>
-    </table>
-    <hr />
-</div>
-</div>
-</div>
-</div>
-</div>
+                <div class="options row hide span8" id="constraint-panel">
+                    <div class="row options">
+                        <form action="#">
+                            <div class="row-fluid slider-row" id="conf-slider-row">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <p>
+                                            <b>Confidence </b>
+                                            <i class="icon-search icon-chevron-right"></i>
+                                            <span id="confidence" class="lead"></span>
+                                        </p>
+                                    </div>
+                                    <div class="span6">
+                                        <div id="confidence-slider">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row-fluid slider-row" id="price-slider-row">
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <p>
+                                            <b>Cumulative Price </b>
+                                            <i class="icon-search icon-chevron-left"></i>
+                                            <span id="price" class="lead"></span>
+                                        </p>
+                                    </div>
+                                    <div class="span6">
+                                        <div id="price-slider"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="row options">
+                        <div class="pull-left">
+                            <a id="get-allocs" class="btn btn-primary">Get Suggestions</a>
+                        </div>
+                       <div id="spinner" class="spin span2 pull-left"></div>
+                    </div>
+                </div>
+            </div>
 
-<div class="msg-box span8">
- <div class="hide alert alert-info" id="status"></div>
- <div class="hide alert alert-error" id="error"></div>
-</div>
+            <div class="row option-block">
+                <hr />
+                <div>
+                    <p class="lead">
+                        <b>Step 3:</b> Review and confirm suggestions. <!--<a href="#" class="btn btn-mini pull-right">More Info</a>-->
+                    </p>
+                </div>
+                <div class="options">
+                    <div class="hide span6" id="alloc-stats">
+                        <div class="row">
+                            <h3 class="pull-left options">Allocation Stats</h3>
+                            <a id="commit-allocs" class="btn btn-success pull-right">Approve</a>
+                        </div>
+                        <br />
+                        <p>
+                            <span><strong>Average Confidence:</strong><span id="average-confidence" class="pull-right"></span></span>
+                        </p>
+                        <p>
+                            <span><strong>Cumulative Price:</strong><span id="cumulative-price" class="pull-right"></span></span>
+                        </p>
+                        <br />
+                        <a class="btn" id="show-suggs" href="#"  data-toggle="">
+                            See suggestions <i class="icon-search icon-plus"></i>
+                        </a>
+                    </div>
+                </div>
 
+            </div>
+            <div class="row">
+                <div class="">
+                    <div id="questions" class="hide">
+                        <table class="table hide" id="details-table">
+                            <thead>
+                                <tr>
+                                    <th>Local Field Name</th>
+                                    <!--<th>Allocation details</th>-->
+                                    <th>Number of workers</th>
+                                    <th>Expected confidence</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% include "expertsrc/allocation_rows.html" %}
+                            </tbody>
+                        </table>
+                        <br>
+                        <br>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="msg-box span6">
+            <div class="hide alert alert-info" id="status"></div>
+            <div class="hide alert alert-error" id="error"></div>
+        </div>
+
+    </div>
+
+</div>
 {% endblock content %}
 
 {% block jquery %}
+<script type="text/javascript">
+    $(".nav-batches").each(function(){$(this).addClass("active")});
+</script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.core.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.widget.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.mouse.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.slider.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/spin.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/batch_panel.js"></script>
 {% endblock jquery %}
