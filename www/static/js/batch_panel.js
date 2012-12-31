@@ -47,7 +47,7 @@ $(function() {
         lines: 11, // The number of lines to draw
         length: 14, // The length of each line
         width: 4, // The line thickness
-        radius: 10, // The radius of the inner circle
+        radius: 5, // The radius of the inner circle
         rotate: 0, // The rotation offset
         color: '#000', // #rgb or #rrggbb
         speed: 1, // Rounds per second
