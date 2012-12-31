@@ -1,11 +1,28 @@
-html,
-body {
-height: 100%;
-/* The html and body elements cannot have any padding or margin. */
+ul,li {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
 }
 
-div.content {
-    width: 90%;
-    margin: 0px auto;
-    margin-top: 55px;
+.sidenav {
+    width:170px;
+}
+
+.fine-print {
+    margin-top:10px;
+}
+
+.crowd-logo {
+    width:160px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.crowd-brand {
+    margin: 0 auto;
+}
+
+.indent {
+    margin-left: 45px;
 }
