@@ -35,14 +35,17 @@ class InsufficientFundsException(Exception):
 
 class UserFunctions:
 
+    def is_asker(self):
+        return self.get_profile().user_class == 'ASK'
+
+    def is_answerer(self):
+        return self.get_profile().user_class == 'ANS'
+
     def get_jobs(self, domain):
         questions = BaseQuestion.objects.filter(domain=domain)
-        return Assignment.objects.filter(answerer=self, 
-                                         completed=False, 
+        return Assignment.objects.filter(answerer=self,
+                                         completed=False,
                                          question__in=questions).order_by('create_time')
-
-#    def get_jobs(self):
-#        return Assignment.objects.filter(answerer=self, completed=False).order_by('create_time')[:10]
 
     def get_review_jobs(self):
         jobs = ReviewAssignment.objects.filter(reviewer=self, completed=False).order_by('create_time')[:10]
@@ -307,7 +310,7 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
                 smc.global_attribute_name = choice.global_attribute_name
                 smc.confidence_score = choice.confidence_score
                 smc.save()
-           
+
 
     @staticmethod
     def get_gui_url(user_id, jobs):
@@ -318,7 +321,7 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
         This assumes that the jobs list is non-empty
         """
         assert len(jobs) > 0
-        domain_id = jobs[0].question.domain.id 
+        domain_id = jobs[0].question.domain.id
         fields = ','.join([str(job.question.schemamapquestion.local_field_id) for job in jobs])
         redirect_base = '%s/doit/%s/fields/map?answerer_id=%s&fields=%s&domain_id=%s'
         redirect_url = redirect_base % (settings.TAMER_URL, settings.TAMER_DB, user_id, fields, domain_id)

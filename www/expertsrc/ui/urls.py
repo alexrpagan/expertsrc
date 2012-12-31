@@ -53,6 +53,8 @@ urlpatterns = patterns('ui.views',
         name='avail_data'),
     url(r'^domain/(?P<domain_id>\d+)/price-data$', 'price_data',
         name='price_data'),
+    url(r'^denied', 'access_denied',
+        name='access_denied'),
 )
 
 #urlpatterns += patterns('',

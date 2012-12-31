@@ -3,7 +3,7 @@ import datetime
 import logging
 
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404, render
 from django.core.urlresolvers import reverse
@@ -18,8 +18,16 @@ import ui.pricing.dynprice as dp
 from ui.dbaccess import *
 from ui.models import *
 
-
 logger = logging.getLogger(__name__)
+
+
+@user_passes_test
+def is_user_asker(user):
+    return user.is_asker()
+
+
+def check_username_match(user, username):
+    return user.username == username
 
 
 def dict_to_json_response(response_dict):
@@ -41,6 +49,10 @@ def index(request):
         return redirect('resolve_user')
     else:
         return redirect('login')
+
+
+def access_denied(request):
+    return render(request, 'expertsrc/access_denied.html')
 
 
 def logout_user(request):
@@ -115,8 +127,8 @@ def answer_home(request):
     context['user'] = user
     context['display_interview'] = 0
     if user.get_profile().has_been_assigned and num_questions == 0:
-# uncomment to get interview form
-#        context['display_interview'] = 1
+    # uncomment to get interview form
+    #context['display_interview'] = 1
         pass
     if request.method == 'POST':
         context['form'] = form = FeedbackForm(request.POST)
@@ -162,9 +174,11 @@ def overview_by_uid(request, uid):
 #changeme
 @login_required
 def overview(request, username):
-    user = get_object_or_404(User, username=username)
+    user = request.user
+    if not check_username_match(user, username):
+        return redirect('access_denied')
     overview = []
-    is_answerer = user.get_profile().user_class == 'ANS'
+    is_answerer = user.is_answerer()
     if is_answerer:
         overview = get_answerer_domain_overview(user)
     profile_form = UserProfileForm(instance=user.get_profile())
@@ -187,7 +201,9 @@ def overview(request, username):
 
 @login_required
 def update_profile(request, username):
-    user = get_object_or_404(User, username=username)
+    user = request.user
+    if not check_username_match(user, username):
+        return redirect('access_denied')
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=user.get_profile())
         if form.is_valid():
@@ -199,7 +215,9 @@ def update_profile(request, username):
 
 @login_required
 def add_expertise(request, username):
-    user = get_object_or_404(User, username=username)
+    user = request.user
+    if not check_username_match(user, username):
+        return redirect('access_denied')
     if request.method == 'POST':
         form = ExpertiseForm(request.POST)
         if form.is_valid():
@@ -209,11 +227,17 @@ def add_expertise(request, username):
             expertise.save()
     return redirect('user_by_name', username=username)
 
+##################
+# asker-only views
+##################
+
 
 @login_required
+@is_user_asker
 def user_batches(request):
     user = request.user
-    is_answerer = user.get_profile().user_class == 'ANS'
+    # should never happen...
+    is_answerer = user.is_answerer()
     if is_answerer:
         messages.error(request, 'You are not an asker!')
         return render(request, 'expertsrc/user_batches.html')
@@ -234,6 +258,7 @@ def user_batches(request):
 
 
 @login_required
+@is_user_asker
 def batch_panel(request, batch_id):
     user = request.user
     batch = get_object_or_404(Batch, pk=batch_id)
@@ -255,6 +280,7 @@ def batch_panel(request, batch_id):
 
 
 @login_required
+@is_user_asker
 def check_for_new_batches(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -273,6 +299,7 @@ def check_for_new_batches(request):
 
 
 @login_required
+@is_user_asker
 def get_allocation_suggestions(request):
     response = {}
     if request.is_ajax():
@@ -308,6 +335,7 @@ def get_allocation_suggestions(request):
 
 
 @login_required
+@is_user_asker
 def commit_allocations(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -365,16 +393,19 @@ def commit_allocations(request):
 
 
 @login_required
+@is_user_asker
 def import_schema_map_questions(request):
     return HttpResponseRedirect('%s?check' % reverse('user_batches'))
 
 
 @login_required
+@is_user_asker
 def redirect_to_tamer(request):
     return HttpResponseRedirect("%s/tamer/%s" % (settings.TAMER_URL, settings.TAMER_DB,))
 
 
 @login_required
+@is_user_asker
 def global_user_overview(request):
     user = request.user
     overview = get_global_user_overview()
@@ -383,6 +414,7 @@ def global_user_overview(request):
 
 
 @login_required
+@is_user_asker
 def batch_overview(request, batch_id):
     user = request.user
     batch = get_object_or_404(Batch, pk=batch_id)
@@ -405,6 +437,7 @@ def batch_overview(request, batch_id):
 
 
 @login_required
+@is_user_asker
 def domain_overview(request):
     user = request.user
     domains = Domain.objects.all()
@@ -416,6 +449,7 @@ def domain_overview(request):
 
 
 @login_required
+@is_user_asker
 def domain_details(request, domain_id):
     user = request.user
     domain = get_object_or_404(Domain, pk=domain_id)
@@ -431,6 +465,7 @@ def domain_details(request, domain_id):
 
 
 @login_required
+@is_user_asker
 def avail_data(request, domain_id):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename="avail-data.csv"'
@@ -442,6 +477,7 @@ def avail_data(request, domain_id):
 
 
 @login_required
+@is_user_asker
 def price_data(request, domain_id):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename="price-data.csv"'
