@@ -26,6 +26,16 @@ def dict_to_json_response(response_dict):
     return HttpResponse(simplejson.dumps(response_dict), mimetype='application/json')
 
 
+def expose_urls(urllist):
+    ret = []
+    for u in urllist:
+        if isinstance(u, str):
+            ret.append((u, reverse(u)))
+        elif isinstance(u, (list, tuple)):
+            ret.append((u[0], reverse(u, args=u[1])))
+    return ret
+
+
 def index(request):
     if request.user.is_authenticated():
         return redirect('resolve_user')
@@ -38,19 +48,17 @@ def logout_user(request):
     return redirect('login')
 
 
-def expose_urls(urllist):
-    ret = []
-    for u in urllist:
-        if isinstance(u, str):
-            ret.append((u, reverse(u)))
-        elif isinstance(u, (list, tuple)):
-            ret.append((u[0], reverse(u, args=u[1])))
-    return ret
+def about(request):
+    return render(request, 'expertsrc/about.html')
 
 
 def login_user(request):
     status = username = ''
-    if request.method == 'POST':
+    next_url = ''
+    if request.method == 'GET':
+        if 'next' in request.GET:
+            next_url = request.GET['next']
+    elif request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(username=username, password=password)
@@ -58,7 +66,6 @@ def login_user(request):
             if user.is_active:
                 login(request, user)
                 if 'next' in request.POST:
-                    # make sure this works with prefix
                     return HttpResponseRedirect(request.POST['next'])
                 else:
                     return redirect('resolve_user')
@@ -66,7 +73,7 @@ def login_user(request):
                 status = 'Your account has been disabled.'
         else:
             status = 'You entered an incorrect username or password.'
-    return render(request, 'expertsrc/login.html', {'msg': status, 'username': username})
+    return render(request, 'expertsrc/login.html', {'next': next_url, 'msg': status, 'username': username})
 
 
 @login_required
@@ -234,8 +241,8 @@ def batch_panel(request, batch_id):
     QuestionModel = batch.question_type.question_class.model_class()
     questions = QuestionModel.objects.filter(batch=batch)
     profile = user.get_profile()
-    url_context = expose_urls(('get_allocation_suggestions', 
-                               'commit_allocations', 
+    url_context = expose_urls(('get_allocation_suggestions',
+                               'commit_allocations',
                                'user_batches'))
     c = {
         'user': user,
@@ -357,20 +364,17 @@ def commit_allocations(request):
             return dict_to_json_response(response)
 
 
+@login_required
 def import_schema_map_questions(request):
     return HttpResponseRedirect('%s?check' % reverse('user_batches'))
 
 
-def about(request):
-    user = request.user
-    c = {'user': user}
-    return render(request, 'expertsrc/about.html', c)
-
-
+@login_required
 def redirect_to_tamer(request):
     return HttpResponseRedirect("%s/tamer/%s" % (settings.TAMER_URL, settings.TAMER_DB,))
 
 
+@login_required
 def global_user_overview(request):
     user = request.user
     overview = get_global_user_overview()
@@ -378,6 +382,7 @@ def global_user_overview(request):
     return render(request, 'expertsrc/user_overview.html', c)
 
 
+@login_required
 def batch_overview(request, batch_id):
     user = request.user
     batch = get_object_or_404(Batch, pk=batch_id)
@@ -425,6 +430,7 @@ def domain_details(request, domain_id):
     return render(request, 'expertsrc/domain_details.html', c)
 
 
+@login_required
 def avail_data(request, domain_id):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename="avail-data.csv"'
@@ -435,6 +441,7 @@ def avail_data(request, domain_id):
     return response
 
 
+@login_required
 def price_data(request, domain_id):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename="price-data.csv"'
