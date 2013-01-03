@@ -87,6 +87,32 @@ def login_user(request):
             status = 'You entered an incorrect username or password.'
     return render(request, 'expertsrc/login.html', {'next': next_url, 'msg': status, 'username': username})
 
+# TODO: finish this...
+# def verify_question_url(request):
+#     t_resp = dict_to_json_response({'authorized': True})
+#     f_resp = dict_to_json_response({'authorized': False})
+#     if request.method == 'POST':
+#         field_list = request.POST.getlist('field_list', False)
+#         answerer_id = request.POST.get('answerer_id', False)
+#         domain_id = request.POST.get('domain_id', False)
+#         username = request.POST.get('username', False)
+#         # check username and answerer_id
+#         if not username:
+#             user = get_object_or_404(User, id=answerer_id)
+#         else:
+#             user = get_object_or_404(User, username=username)
+#             # check answerer_id for validity
+#             if user.id != answerer_id:
+#                 return f_resp
+#         domain = get_object_or_404(Domain, id=domain_id)
+#         jobs = user.get_all_jobs(domain)
+#         all_fields = \
+#             [job.question.schemamapquestion.local_field_id for job in jobs]
+#         if not set(field_list).issubset(set(all_fields)):
+#             return f_resp
+#         return t_resp
+#     return f_resp
+
 
 @login_required
 def next_question(request, domain_id):

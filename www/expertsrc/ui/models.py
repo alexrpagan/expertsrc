@@ -41,6 +41,11 @@ class UserFunctions:
     def is_answerer(self):
         return self.get_profile().user_class == 'ANS'
 
+    def get_all_jobs(self, domain):
+        questions = BaseQuestion.objects.filter(domain=domain)
+        return Assignment.objects.filter(answerer=self,
+                                         question__in=questions).order_by('create_time')
+
     def get_jobs(self, domain):
         questions = BaseQuestion.objects.filter(domain=domain)
         return Assignment.objects.filter(answerer=self,
@@ -279,6 +284,61 @@ class ReviewAssignment(models.Model):
     agreed_price = models.FloatField(default=0)
 
 
+# class ERQuestion(BaseQuestion, BatchSupport):
+#     entity1 = models.IntegerField(default=0)
+#     entity2 = models.IntegerField(default=0)
+#     source_id = models.IntegerField(default=0)
+#     cluster_id = models.IntegerField(default=0)
+
+#     def __unicode__(self):
+#         return '%s -> %s' % (self.entity1, self.entity2)
+
+#     @staticmethod
+#     @transaction.commit_on_success
+#     def import_batch(batch_obj):
+#         batch_rec = Batch()
+#         batch_rec.owner = User.objects.get(username=batch_obj.asker_name)
+#         batch_rec.question_type = QuestionType.objects.get(short_name='nr')
+#         batch_rec.source_name = batch_obj.source_name
+#         batch_rec.save()
+#         for question in batch_obj.question:
+#             erq = Question()
+#             erq.batch = batch_rec
+#             erq.asker = batch_rec.owner
+#             erq.domain = Domain.objects.get(short_name=question.domain_name)
+#             erq.question_type = QuestionType.objects.get(short_name='nr')
+#             erq.entity1 = question.entity1
+#             erq.entity2 = question.entity2
+#             erq.source_id = question.source_id
+#             erq.save()
+
+
+# class ERAnswer(BaseAnswer, BatchSupport):
+#     is_dup = models.BooleanField()
+#     fid_answer_cnt = {}
+#     reviewer = None
+#     for answer in batch_obj.answer:
+#         answerer = User.objects.get(pk=answer.answerer_id)
+#         era = ERAnswer()
+#         question = sma.question = ERQuestion.objects.get(entity1=answer.entity1, entity2=answer.entity2)
+#         sma.answerer = answerer
+#         sma.confidence = answer.confidence
+#         sma.authority = answer.authority
+#         sma.global_attribute_id = answer.global_attribute_id
+#         fid_answer_cnt.setdefault(answer.local_field_id,
+#                                   SchemaMapAnswer.objects.filter(answerer=answerer,
+#                                                                  local_field_id=answer.local_field_id).count())
+#         sma.local_field_id = answer.local_field_id
+#         sma.is_match = answer.is_match
+#         sma.save()
+#         assn = Assignment.objects.get(answerer=answerer, question=sma.question)
+#         assn.completed = True
+#         assn.save()
+#         # only pay for one answer per local_field_id
+#         if fid_answer_cnt[answer.local_field_id] == 0:
+#             answerer.get_paid(question)
+#             fid_answer_cnt[answer.local_field_id] += 1
+
 class SchemaMapQuestion(BaseQuestion, BatchSupport):
     local_field_id = models.PositiveIntegerField(unique=True)
     local_field_name = models.CharField(max_length=128)
@@ -310,7 +370,6 @@ class SchemaMapQuestion(BaseQuestion, BatchSupport):
                 smc.global_attribute_name = choice.global_attribute_name
                 smc.confidence_score = choice.confidence_score
                 smc.save()
-
 
     @staticmethod
     def get_gui_url(user_id, jobs):
