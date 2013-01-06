@@ -77,10 +77,10 @@ def login_user(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                if 'next' in request.POST:
-                    return HttpResponseRedirect(request.POST['next'])
-                else:
-                    return redirect('resolve_user')
+                #if 'next' in request.POST:
+                #    return HttpResponseRedirect(request.POST['next'])
+                #else:
+                return redirect('resolve_user')
             else:
                 status = 'Your account has been disabled.'
         else:
@@ -112,6 +112,20 @@ def login_user(request):
 #             return f_resp
 #         return t_resp
 #     return f_resp
+
+
+@login_required
+def consent(request):
+    if request.method == 'GET':
+        return render(request, 'expertsrc/consent.html')
+    elif request.method == 'POST':
+        consent = request.POST.get('consent', False)
+        user = request.user
+        user.set_consent(consent)
+        if consent:
+            return redirect('resolve_user')
+        else:
+            return redirect('noconsent')
 
 
 @login_required
@@ -174,11 +188,7 @@ def answer_home(request):
 @login_required
 def thanks_and_goodbye(request):
     user = request.user
-    profile = user.get_profile()
-    profile.has_been_assigned = False
-    profile.save()
-    #TODO: set to true and test
-    disable_account = True
+    disable_account = False
     logout(request)
     if disable_account:
         user.is_active = False
@@ -187,7 +197,32 @@ def thanks_and_goodbye(request):
 
 
 @login_required
+def noconsent(request):
+    logout(request)
+    return render(request, 'expertsrc/noconsent.html')
+
+
+@login_required
+def training(request):
+    return render(request, 'expertsrc/training.html')
+
+
+@login_required
+def finished_training(request):
+    user = request.user
+    user.set_training()
+    return redirect('resolve_user')
+
+
+@login_required
 def implicit_overview(request):
+    user = request.user
+    if not user.has_logged_in():
+        user.set_login()
+    if not user.has_consented():
+        return redirect('consent')
+    if not user.has_completed_training():
+        return redirect('training')
     return redirect('user_by_name', username=request.user.username)
 
 
@@ -201,6 +236,7 @@ def overview_by_uid(request, uid):
 @login_required
 def overview(request, username):
     user = request.user
+    # make sure user is authorized
     if not check_username_match(user, username):
         return redirect('access_denied')
     overview = []

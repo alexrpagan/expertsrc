@@ -1,0 +1,222 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Consent To Participate in Research</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="{{ STATIC_URL }}css/reveal.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme/simple.css" id="theme">
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h3>Thank you for choosing to participate!</h3>
+                    <br>
+                    <p>
+                        Before you start, we would like you to complete some quick training about <b>data curation</b> and how to use <b>Data Tamer</b>, our system for data curation.
+                    </p>
+                    <br>
+                    <p>
+                        The training should take 15 minutes or fewer.
+                    </p>
+                    <small>Use your arrow keys or spacebar to move through the material.</small>
+                </section>
+                <section>
+                    <h2>First, what is <b>data curation</b>?</h3>
+                </section>
+                <section>
+                    <h3><b>Data curation</b> is the process of maintaining a collection of data sources over time.</h3>
+                    <br>
+                    <p>
+                    </p>
+                </section>
+                <section>
+                    <h3>Common data curation tasks include:</h3>
+                    <br>
+                    <ul>
+                        <li>
+                            Importing relevant data sources into a collection
+                        </li>
+                        <li>
+                            Transforming and cleaning imported data
+                        </li>
+                        <li>
+                            Semantically integrating imported data
+                        </li>
+                        <li>
+                            Removing duplicate entries from integrated sources
+                        </li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>We would like you to help us with <b>semantically integrating imported data</b>.</h3>
+                </section>
+                <section>
+                    <h3>This step is called <b>schema integration</b>.</h3>
+                    <br>
+                    <p>
+                        During schema integration, the data curator matches data attributes from imported sources (which we call <i>local</i> attributes) with <i>global</i> data attributes within the collection.
+                    </p>
+                    <br>
+                    <p>
+                        The curator make a match if the data in the local and global attributes have the <i>same semantic type</i>.
+                    </p>
+                </section>
+                <section>
+                    <h3>For example:</h3>
+                    <img src="{{ STATIC_URL }}img/training/tutdiag.jpg">
+                    <small>
+                        We see here that each data attribute from the two "local" sources have been mapped to a semantically equivalent attribute in the <i>global schema</i>.
+                    </small>
+                </section>
+                <section>
+                    <h2>Okay, so what is <b>Data Tamer?</b></h2>
+                </section>
+                <section>
+                    <h3><b>Data Tamer</b> is a data curation system.</h3>
+                    <br>
+                    <p>
+                        Data Tamer uses machine learning algorithms to complete data curation tasks automatically and at scale.
+                    </p>
+
+                </section>
+                <section>
+                    <h3>Data Tamer is <b>human-aided</b>.</h3>
+                    <img src="{{ STATIC_URL }}img/crowd-silhouette.jpg">
+                    <p>
+                        When we suspect that our algorithms might be wrong about a data curation task, Data Tamer calls in a human domain expert (or a group thereof) to help complete the task.
+                    </p>
+                </section>
+
+                <section>
+                    <h3>You can help us improve Novartis's <b>Pharon assay data</b> (and our system!) by completing some simple schema integration tasks over the course of the next 4 weeks.</h3>
+                </section>
+
+                <section>
+                    <h3>How it works:</h3>
+                    <ul>
+                        <li>Each week, we will run between one and four assay data sources from your research department through Data Tamer's algorithms.</li>
+                        <li>From these sources, we will generate a set of <i>schema mapping tasks</i>, which will be assigned to domain experts in your group, including yourself. You will be notified by email when you have been assigned to new questions.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>The tasks</h3>
+                    <ul>
+                        <li>For each task, you will be asked whether an attribute from a local source and an attribute from the global schema contain the <b>same sort of data</b>. </li>
+                        <li>The global attribute given in the task is Data Tamer's <b>best guess</b> at a match.</li>
+                        <li>To answer, you either reply <i>Yes</i>, <i>No</i>, or specify a global attribute which matches better.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3><b>Please note!</b></h3>
+                    <ul>
+                        <li>Our global attributes are a combination of result-typing attributes from the MAGMA system and metadata attributes from ARES. It is a currently <i>incomplete</i> collection.</li>
+                        <li>Hence, your answers to schema mapping tasks are regarded as <b>best-effort</b>. We recognize that schema mapping questions do not always admit a clear best answer. </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Also...</h3>
+                    <ul>
+                        <li>
+                            You will never be penalized for answering a question incorrectly.
+                        </li>
+                        <li>
+                            <i>We do not intend for you to spend more than 60 minutes per week on these tasks.</i>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Quick Tour of Data Tamer's User Interface</h2>
+                </section>
+
+                <section>
+                    <h3>User Profile</h3>
+                    <img src="{{ STATIC_URL }}img/training/userprofilepanel.png">
+                    <small>
+                        In your <b>User Profile</b>, you will see a summary of the questions you have been assigned, including the number currently pending. If unanswered, these questions will <b>remain</b> in your queue throughout the duration of the study, but we recommend you complete them as soon as possible.
+                    </small>
+                </section>
+
+                <section>
+                    <h3>Mapping Interface</h3>
+                    <img src="{{ STATIC_URL }}img/training/mapsimple.png">
+                    <small>The <b>mapping interface</b> (accessed by pressing <b>Answer Questions</b>) is the means by which you answer schema mapping questions. Each row in the interface represents a schema mapping question.</small>
+                </section>
+
+                <section>
+                    <h3>Mapping Interface Features</h3>
+                    <div>
+                        <img style="width:300px;" src="{{ STATIC_URL }}img/training/yes.png">
+                        <img style="width:300px;" src="{{ STATIC_URL }}img/training/no.png">
+                    </div>
+                    <small>To answer a question, either confirm or disconfirm a match...</small>
+
+                </section>
+
+                <section>
+                    <h3>Mapping Interface Features</h3>
+                    <div>
+                        <img src="{{ STATIC_URL }}img/training/filter.png">
+                    </div>
+                    <small>Or select a different global attribute...</small>
+                </section>
+
+                <section>
+                    <h3>Mapping Interface Features</h3>
+                    <div>
+                        <img src="{{ STATIC_URL }}img/training/saidyes.png">
+                    </div>
+                    <small>Once you've made your selection, indicate how comfortable you feel about it.</small>
+                </section>
+
+                <section>
+                     <h3>Mapping Interface Features</h3>
+                    <div>
+                        <img style="width:350px;" src="{{ STATIC_URL }}img/training/moreinfo.png">
+                    </div>
+                    <small>Context information is available if needed. You can view a <b>sample of the data source</b> from which the task was created, or you can view more information about the <b>local field and its top global matches.</b></small>
+                </section>
+
+                <section>
+                     <h3>Thanks for completing the training!</h3>
+                     <br>
+                     <p>
+                        <a class="btn btn-primary" href="{% url finished_training %}">Continue to Tasks</a>
+                     </p>
+                     <small>
+                        Any questions or concerns (including technical support questions) can be directed to <a href="mailto:alexrpagan@gmail.com">Alex Pagan</a>.
+                     </small>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ STATIC_URL }}js/reveal.min.js"></script>
+
+    <script>
+
+        // Full list of configuration options available here:
+        // https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            history: true,
+            center: true,
+            theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+            transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
+        });
+
+    </script>
+</body>
+</html>

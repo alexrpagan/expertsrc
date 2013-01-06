@@ -9,6 +9,7 @@ from ui.dbaccess import *
 from ui.utils import *
 
 import logging
+import datetime
 import sys
 import traceback
 
@@ -40,6 +41,34 @@ class UserFunctions:
 
     def is_answerer(self):
         return self.get_profile().user_class == 'ANS'
+
+    def has_logged_in(self):
+        return self.get_profile().has_logged_in
+
+    def set_login(self):
+        profile = self.get_profile()
+        profile.has_logged_in = True
+        profile.login_date = datetime.datetime.now()
+        profile.save()
+
+    def has_consented(self):
+        return self.get_profile().has_consented
+
+    def set_consent(self, answer):
+        profile = self.get_profile()
+        if answer:
+            profile.has_consented = answer
+        profile.consent_date = datetime.datetime.now()
+        profile.save()
+
+    def has_completed_training(self):
+        return self.get_profile().has_completed_training
+
+    def set_training(self):
+        profile = self.get_profile()
+        profile.has_completed_training = True
+        profile.training_completion_date = datetime.datetime.now()
+        profile.save()
 
     def get_all_jobs(self, domain):
         questions = BaseQuestion.objects.filter(domain=domain)
@@ -127,6 +156,12 @@ class UserProfile(models.Model):
     user_class = models.CharField(max_length=3, choices=USER_CLASS_CHOICES)
     bank_balance = models.FloatField(default=0)
     domains = models.ManyToManyField(Domain, through='Expertise')
+    has_logged_in = models.BooleanField(default=False)
+    login_date = models.DateTimeField(null=True, blank=True)
+    has_completed_training = models.BooleanField(default=False)
+    training_completion_date = models.DateTimeField(null=True, blank=True)
+    has_consented = models.BooleanField(default=False)
+    consent_date = models.DateTimeField(null=True, blank=True)
     has_been_assigned = models.BooleanField(default=False)
 
 
