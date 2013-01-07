@@ -219,9 +219,9 @@ def implicit_overview(request):
     user = request.user
     if not user.has_logged_in():
         user.set_login()
-    if not user.has_consented():
+    if settings.CONSENT and not user.has_consented():
         return redirect('consent')
-    if not user.has_completed_training():
+    if settings.TRAINING and not user.has_completed_training():
         return redirect('training')
     return redirect('user_by_name', username=request.user.username)
 
