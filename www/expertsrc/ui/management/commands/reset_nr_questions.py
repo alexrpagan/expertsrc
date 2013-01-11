@@ -3,13 +3,15 @@ from ui.models import *
 from django.db import connections, transaction
 from django.conf import settings
 
+
 class Command(NoArgsCommand):
     @transaction.commit_on_success
     def handle_noargs(self, **options):
-        #cur = connections[settings.TAMER_DB].cursor()
-        #print 'clear loaded data sources from remote database.'
-        #ur.execute('select * from unload_local()')
-        #cur.connection.commit()
+        cur = connections[settings.TAMER_DB].cursor()
+        print 'clear loaded data sources from remote database.'
+        cur.execute('select * from unload_local()')
+        cur.execute('delete from message_queue;')
+        cur.connection.commit()
 
         print 'delete the guy who owns all of the schema mapping questions'
         User.objects.filter(username='data-tamer').delete()
